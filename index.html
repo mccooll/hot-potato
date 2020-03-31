@@ -3,6 +3,7 @@
 	<a id="download">Download</a>
 	<button id="stop">Stop</button>
 	<script>
+	  const downloadLink = document.getElementById('download');
 	  async function load() {
 	  	const audioCtx = new AudioContext();
 	  	const response = await fetch('sample.mp3');
@@ -26,6 +27,17 @@
 		  	});
 		  	trackSource.start();
 		  	mediaRecorder.start();
+		  	  mediaRecorder.addEventListener('dataavailable', function(e) {
+			      if (e.data.size > 0) {
+			        recordedChunks.push(e.data);
+			      }
+
+			    });
+
+			    mediaRecorder.addEventListener('stop', function() {
+			      downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
+			      downloadLink.download = 'acetest.wav';
+			    });
 		  })
 		};
 
