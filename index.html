@@ -12,9 +12,25 @@
 	  	const trackSource = audioCtx.createBufferSource();
   		trackSource.buffer = audioBuffer;
   		trackSource.connect(audioCtx.destination);
-  		trackSource.start();
+  		return trackSource;
+  		//trackSource.start();
 	  }
-	  load();	  
+	  function handleSuccess(stream) {
+		  load().then((trackSource) => {
+		  	const options = {mimeType: 'audio/webm'};
+		  	const recordedChunks = [];
+		  	const mediaRecorder = new MediaRecorder(stream, options);
+
+		  	trackSource.addEventListener('ended', () => {
+		  		mediaRecorder.stop();
+		  	});
+		  	trackSource.start();
+		  	mediaRecorder.start();
+		  })
+		};
+
+	  navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+	       .then(handleSuccess);	  
 
 	  // let shouldStop = false;
 	  // let stopped = false;
