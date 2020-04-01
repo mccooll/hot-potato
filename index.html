@@ -53,6 +53,9 @@
 			  	  originTrackSource.start();
 			  	  recordedTrackSource.start();
 			  	  const render = await offlineAudioCtx.startRendering();
+			  	  const mixRawData = render.getChannelData(0);
+			  	  const mixDataBlob = new Blob(mixRawData);
+			  	  console.log(mixDataBlob.size);
 			  	  var mix = audioCtx.createBufferSource();
 			  	  mix.buffer = render;
 			  	  mix.connect(audioCtx.destination);
