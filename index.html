@@ -3,20 +3,27 @@
 	<a id="download">Download</a>
 	<button id="stop">Stop</button>
 	<script>
+		//https://stackoverflow.com/questions/42557005/mixing-two-audio-buffers-put-one-on-background-of-another-by-using-web-audio-ap
 	  const downloadLink = document.getElementById('download');
+	  const audioCtx = new AudioContext();
+	  var originAudioBuffer;
+	  //var merger = audioCtx.createChannelMerger(1);
+	  let duration = 0; //messy
 	  async function load() {
-	  	const audioCtx = new AudioContext();
+	  	
 	  	const response = await fetch('sample.mp3');
   		const arrayBuffer = await response.arrayBuffer();
-  		const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+  		originAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+  		//console.log(audioBuffer.duration);
+  		duration = originAudioBuffer.duration; //messy
 	  	//let baseBlob = await fetch('sample.mp3');
 	  	const trackSource = audioCtx.createBufferSource();
-  		trackSource.buffer = audioBuffer;
+  		trackSource.buffer = originAudioBuffer;
   		trackSource.connect(audioCtx.destination);
   		return trackSource;
   		//trackSource.start();
 	  }
-	  function handleSuccess(stream) {
+	  async function handleSuccess(stream) {
 		  load().then((trackSource) => {
 		  	const options = {mimeType: 'audio/webm'};
 		  	const recordedChunks = [];
@@ -27,12 +34,31 @@
 		  	});
 		  	trackSource.start();
 		  	mediaRecorder.start();
-		  	  mediaRecorder.addEventListener('dataavailable', function(e) {
+		  	  mediaRecorder.addEventListener('dataavailable', async function(e) {
 			      if (e.data.size > 0) {
 			        recordedChunks.push(e.data);
 			      }
+			      let recordedChunksBlob = new Blob(recordedChunks);
+			      const offlineAudioCtx = new OfflineAudioContext(1, duration*48000, 48000);
+			      const originTrackSource = offlineAudioCtx.createBufferSource();
+			      originTrackSource.buffer = originAudioBuffer;
+			      originTrackSource.connect(offlineAudioCtx.destination);
 
+			      const recordedArrayBuffer = await recordedChunksBlob.arrayBuffer();
+			  	  recordedAudioBuffer = await audioCtx.decodeAudioData(recordedArrayBuffer);
+				  const recordedTrackSource = offlineAudioCtx.createBufferSource();
+			  	  recordedTrackSource.buffer = recordedAudioBuffer;
+			  	  recordedTrackSource.connect(offlineAudioCtx.destination);
+
+			  	  originTrackSource.start();
+			  	  recordedTrackSource.start();
+			  	  const render = await offlineAudioCtx.startRendering();
+			  	  var mix = audioCtx.createBufferSource();
+			  	  mix.buffer = render;
+			  	  mix.connect(audioCtx.destination);
+			  	  mix.start();
 			    });
+
 
 			    mediaRecorder.addEventListener('stop', function() {
 			      downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
