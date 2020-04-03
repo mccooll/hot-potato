@@ -6,6 +6,8 @@
 	  const audioCtx = new AudioContext();
 	  var originAudioBuffer;
 	  let duration = 0; //messy
+    const maxDecibels = -30;
+    const minDecibels = -50;
 	  async function load() {	  	
 	  	const response = await fetch('sample.mp3');
   		const arrayBuffer = await response.arrayBuffer();
@@ -22,7 +24,8 @@
 	  		mediaRecorder.stop();
 	  	});
       const trackAnal = audioCtx.createAnalyser();
-      trackAnal.maxDecibels = 0;
+      trackAnal.maxDecibels = maxDecibels;
+      trackAnal.minDecibels = minDecibels;
       trackAnal.smoothingTimeConstant = 0.9;
       trackAnal.fftSize = 32;
       const trackProcessor = audioCtx.createScriptProcessor(1024, 1, 1);
@@ -41,13 +44,14 @@
         trackTotalOfSamples += sampleTotal;
         trackSamples++;
         trackAvg = trackTotalOfSamples/trackSamples;
-        console.log('trackAvg' + trackAvg);
+        //console.log('trackAvg' + trackAvg);
         //console.log(trackAmplitudeArray);
       }
 
       const streamSource = audioCtx.createMediaStreamSource(stream);
       const anal = audioCtx.createAnalyser();
-      anal.maxDecibels = 0;
+      anal.maxDecibels = maxDecibels;
+      anal.minDecibels = minDecibels;
       anal.smoothingTimeConstant = 0.9;
       anal.fftSize = 32;
       const processor = audioCtx.createScriptProcessor(1024, 1, 1);
@@ -64,7 +68,7 @@
         totalOfSamples += sampleTotal;
         samples++;
         avg = totalOfSamples/samples;
-        console.log(avg);
+        //console.log(avg);
         //console.log(amplitudeArray)
       }
 
@@ -86,7 +90,10 @@
 	  	  const recordedAudioBuffer = await audioCtx.decodeAudioData(recordedArrayBuffer);
 		    const recordedTrackSource = offlineAudioCtx.createBufferSource();
 	  	  recordedTrackSource.buffer = recordedAudioBuffer;
-	  	  recordedTrackSource.connect(offlineAudioCtx.destination);
+        const gain = offlineAudioCtx.createGain();
+        gain.gain = Math.pow(10, (trackAvg - avg)/255*(maxDecibels- minDecibels));
+        recordedTrackSource.connect(gain);
+	  	  gain.connect(offlineAudioCtx.destination);
 
 	  	  originTrackSource.start();
 	  	  recordedTrackSource.start();
