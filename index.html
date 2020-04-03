@@ -33,7 +33,7 @@
 	      const recordedChunksBlob = new Blob(recordedChunks);
 	      const offlineAudioCtx = new OfflineAudioContext(1, duration*48000, 48000);
 	      const originTrackSource = offlineAudioCtx.createBufferSource();
-	      originTrackSource.buffer = originAudioBuffer;
+	      originTrackSource.buffer = trackSource.buffer;
 	      originTrackSource.connect(offlineAudioCtx.destination);
 
 	      const recordedArrayBuffer = await recordedChunksBlob.arrayBuffer();
@@ -41,6 +41,13 @@
 		    const recordedTrackSource = offlineAudioCtx.createBufferSource();
 	  	  recordedTrackSource.buffer = recordedAudioBuffer;
 	  	  recordedTrackSource.connect(offlineAudioCtx.destination);
+
+        const anal = offlineAudioCtx.createAnalyser();
+        offlineAudioCtx.suspend(5).then(function() {
+          var dataArray = new Uint8Array(anal.frequencyBinCount);
+          anal.getByteFrequencyData(dataArray);
+          console.log(dataArray);
+        });
 
 	  	  originTrackSource.start();
 	  	  recordedTrackSource.start();
@@ -51,10 +58,10 @@
 	  	  mix.buffer = render;
 	  	  mix.connect(audioCtx.destination);
 	  	  mix.start();
-		});
+		  });
 
-  	mediaRecorder.start();
-  	trackSource.start();
+  	  mediaRecorder.start();
+      trackSource.start();
 
 	  };
 
