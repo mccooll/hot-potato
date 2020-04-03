@@ -21,17 +21,34 @@
 	  	trackSource.addEventListener('ended', () => {
 	  		mediaRecorder.stop();
 	  	});
+      const trackAnal = audioCtx.createAnalyser();
+      trackAnal.maxDecibels = 0;
+      const trackProcessor = audioCtx.createScriptProcessor(1024, 1, 1);
+      let trackAmplitudeArray = new Uint8Array(trackAnal.frequencyBinCount);
+      trackSource.connect(trackAnal);
+      trackAnal.connect(trackProcessor);
+      let trackMax = 0;
+      trackProcessor.onaudioprocess = function() {
+        //console.log('processing'); //works
+        //anal.getByteTimeDomainData(amplitudeArray);
+        trackAnal.getByteFrequencyData(amplitudeArray);
+        //console.log(amplitudeArray);
+        let sampleMax = amplitudeArray.reduce((a,b) => Math.max(a,b));
+        trackMax  = Math.max(trackMax,sampleMax);
+        //console.log(trackMax);
+      }
 
       const streamSource = audioCtx.createMediaStreamSource(stream);
       const anal = audioCtx.createAnalyser();
       anal.maxDecibels = 0;
+      anal.smoothingTimeConstant
       const processor = audioCtx.createScriptProcessor(1024, 1, 1);
       let amplitudeArray = new Uint8Array(anal.frequencyBinCount);
       streamSource.connect(anal);
       anal.connect(processor);
       let max = 0;
       processor.onaudioprocess = function() {
-        console.log('processing'); //works
+        //console.log('processing'); //works
         //anal.getByteTimeDomainData(amplitudeArray);
         anal.getByteFrequencyData(amplitudeArray);
         //console.log(amplitudeArray);
@@ -59,12 +76,6 @@
 		    const recordedTrackSource = offlineAudioCtx.createBufferSource();
 	  	  recordedTrackSource.buffer = recordedAudioBuffer;
 	  	  recordedTrackSource.connect(offlineAudioCtx.destination);
-
-        offlineAudioCtx.suspend(5).then(function() {
-          var dataArray = new Uint8Array(anal.frequencyBinCount);
-          anal.getByteFrequencyData(dataArray);
-          console.log(dataArray);
-        });
 
 	  	  originTrackSource.start();
 	  	  recordedTrackSource.start();
