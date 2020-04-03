@@ -37,11 +37,11 @@
         //anal.getByteTimeDomainData(amplitudeArray);
         trackAnal.getByteFrequencyData(trackAmplitudeArray);
         //console.log(amplitudeArray);
-        let sampleTotal = trackAmplitudeArray.reduce((a,b) => a+b)/trackAmplitudeArray.length;
+        let sampleTotal = (trackAmplitudeArray[0]+trackAmplitudeArray[1])/2;
         trackTotalOfSamples += sampleTotal;
         trackSamples++;
         trackAvg = trackTotalOfSamples/trackSamples;
-        //console.log('trackAvg' + trackAvg);
+        console.log('trackAvg' + trackAvg);
         //console.log(trackAmplitudeArray);
       }
 
@@ -59,13 +59,13 @@
       let samples = 0;
       processor.onaudioprocess = function() {
         anal.getByteFrequencyData(amplitudeArray);
-        let sampleTotal = amplitudeArray.reduce((a,b) => a+b)/amplitudeArray.length;
+        let sampleTotal = (amplitudeArray[0]+amplitudeArray[1])/2;
         //console.log(sampleTotal);
         totalOfSamples += sampleTotal;
         samples++;
         avg = totalOfSamples/samples;
-        //console.log(avg);
-        console.log(amplitudeArray)
+        console.log(avg);
+        //console.log(amplitudeArray)
       }
 
 	  	const options = {mimeType: 'audio/webm'};
