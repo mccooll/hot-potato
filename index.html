@@ -91,7 +91,7 @@
 		    const recordedTrackSource = offlineAudioCtx.createBufferSource();
 	  	  recordedTrackSource.buffer = recordedAudioBuffer;
         const gain = offlineAudioCtx.createGain();
-        gain.gain = Math.pow(10, (trackAvg - avg)/255*(maxDecibels- minDecibels));
+        gain.gain.value = (trackAvg - avg)/255*(maxDecibels- minDecibels);
         recordedTrackSource.connect(gain);
 	  	  gain.connect(offlineAudioCtx.destination);
 
