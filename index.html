@@ -4,11 +4,12 @@
     body {
       background-color: lightcoral;
       overflow-x: hidden;
+      overflow-y: hidden;
     }
     .bigBubble {
       background-color: lightpink;
       position:absolute;
-      top:-125vh;
+      top:-100vh;
       left:-50vh;
       width: 200vh;
       height: 200vh;
@@ -17,7 +18,7 @@
     .mediumBubble {
       background-color: lightgrey;
       position:absolute;
-      top:-125vh;
+      top:-100vh;
       left:-18.75vh;
       width: 150vh;
       height: 150vh;
@@ -32,12 +33,35 @@
       height: 60vh;
       border-radius:30vh;
     }
+    .slowBubble {
+      animation-name:bubbling;
+      animation-duration: 20s;
+      animation-iteration-count: infinite;
+    }
+    .fastBubble {
+      animation-name:bubbling;
+      animation-duration: 10s;
+      animation-iteration-count: infinite;
+    }
+    @keyframes bubbling {
+      from {
+        transform: scale(1);
+        animation-timing-function: ease-out;
+      }
+      50% {
+        transform: scale(1.10);
+        animation-timing-function: ease-in;
+      }
+      to {
+        transform: scale(1);
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="bigBubble"></div>
-  <div class="mediumBubble"></div>
-  <div class="smallBubble"></div>
+  <div class="bigBubble slowBubble"></div>
+  <div class="mediumBubble slowBubble"></div>
+  <div class="smallBubble slowBubble"></div>
   <script>
     const audioCtx = new AudioContext();
     var originAudioBuffer;
