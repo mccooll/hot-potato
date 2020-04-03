@@ -1,7 +1,43 @@
 <html>
+<head>
+  <style>
+    body {
+      background-color: lightcoral;
+      overflow-x: hidden;
+    }
+    .bigBubble {
+      background-color: lightpink;
+      position:absolute;
+      top:-125vh;
+      left:-50vh;
+      width: 200vh;
+      height: 200vh;
+      border-radius:100vh;
+    }
+    .mediumBubble {
+      background-color: lightgrey;
+      position:absolute;
+      top:-125vh;
+      left:-18.75vh;
+      width: 150vh;
+      height: 150vh;
+      border-radius:75vh;
+    }
+    .smallBubble {
+      background-color: lightblue;
+      position:absolute;
+      top:-50vh;
+      left:20vh;
+      width: 60vh;
+      height: 60vh;
+      border-radius:30vh;
+    }
+  </style>
+</head>
 <body>
-  <a id="download">Download</a>
-  <button id="stop">Stop</button>
+  <div class="bigBubble"></div>
+  <div class="mediumBubble"></div>
+  <div class="smallBubble"></div>
   <script>
     const audioCtx = new AudioContext();
     var originAudioBuffer;
@@ -120,9 +156,7 @@
 
     };
 
-    navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(handleMicrophoneSuccess);
+    //navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(handleMicrophoneSuccess);
   </script>
-
-
 </body>
 </html>
