@@ -64,6 +64,7 @@
       let totalOfSamples = 0;
       let samples = 0;
       processor.onaudioprocess = function() {
+        console.log('processing');
         anal.getByteFrequencyData(amplitudeArray);
         let sampleTotal = (amplitudeArray[0]+amplitudeArray[1])/2;
         //console.log(sampleTotal);
@@ -80,7 +81,11 @@
 	  	const recordedChunks = [];
 	  	const mediaRecorder = new MediaRecorder(stream, options);
 
-	  	mediaRecorder.addEventListener('dataavailable', async function(e) { //assuming this event only happens after recording ends
+	  	mediaRecorder.addEventListener('dataavailable', async function(e) { //assuming this event only happens after recording 
+        trackSource.disconnect();
+        trackAnal.disconnect();
+        streamSource.disconnect();
+        anal.disconnect();
 	      if (e.data.size > 0) {
 	        recordedChunks.push(e.data);
 	      }
