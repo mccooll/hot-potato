@@ -6,8 +6,7 @@
 	  const audioCtx = new AudioContext();
 	  var originAudioBuffer;
 	  let duration = 0; //messy
-	  async function load() {
-	  	
+	  async function load() {	  	
 	  	const response = await fetch('sample.mp3');
   		const arrayBuffer = await response.arrayBuffer();
   		originAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
@@ -17,55 +16,49 @@
   		trackSource.connect(audioCtx.destination);
   		return trackSource;
 	  }
-	  async function handleSuccess(stream) {
-		  load().then((trackSource) => {
-		  	const options = {mimeType: 'audio/webm'};
-		  	const recordedChunks = [];
-		  	const mediaRecorder = new MediaRecorder(stream, options);
+	  async function handleMicrophoneSuccess(stream) {
+		  let trackSource = await load();
+	  	trackSource.addEventListener('ended', () => {
+	  		mediaRecorder.stop();
+	  	});
 
-		  	trackSource.addEventListener('ended', () => {
-		  		mediaRecorder.stop();
-		  	});
-		  	trackSource.start();
-		  	mediaRecorder.start();
-		  	  mediaRecorder.addEventListener('dataavailable', async function(e) {
-			      if (e.data.size > 0) {
-			        recordedChunks.push(e.data);
-			      }
-			      let recordedChunksBlob = new Blob(recordedChunks);
-			      const offlineAudioCtx = new OfflineAudioContext(1, duration*48000, 48000);
-			      const originTrackSource = offlineAudioCtx.createBufferSource();
-			      originTrackSource.buffer = originAudioBuffer;
-			      originTrackSource.connect(offlineAudioCtx.destination);
+	  	const options = {mimeType: 'audio/webm'};
+	  	const recordedChunks = [];
+	  	const mediaRecorder = new MediaRecorder(stream, options);
 
-			      const recordedArrayBuffer = await recordedChunksBlob.arrayBuffer();
-			  	  recordedAudioBuffer = await audioCtx.decodeAudioData(recordedArrayBuffer);
-				  const recordedTrackSource = offlineAudioCtx.createBufferSource();
-			  	  recordedTrackSource.buffer = recordedAudioBuffer;
-			  	  recordedTrackSource.connect(offlineAudioCtx.destination);
+	  	mediaRecorder.addEventListener('dataavailable', async function(e) { //assuming this event only happens after recording ends
+	      if (e.data.size > 0) {
+	        recordedChunks.push(e.data);
+	      }
+	      const recordedChunksBlob = new Blob(recordedChunks);
+	      const offlineAudioCtx = new OfflineAudioContext(1, duration*48000, 48000);
+	      const originTrackSource = offlineAudioCtx.createBufferSource();
+	      originTrackSource.buffer = originAudioBuffer;
+	      originTrackSource.connect(offlineAudioCtx.destination);
 
-			  	  originTrackSource.start();
-			  	  recordedTrackSource.start();
-			  	  const render = await offlineAudioCtx.startRendering();
-			  	  const mixRawData = render.getChannelData(0);
-			  	  const mixDataBlob = new Blob(mixRawData);
-			  	  console.log(mixDataBlob.size);
-			  	  var mix = audioCtx.createBufferSource();
-			  	  mix.buffer = render;
-			  	  mix.connect(audioCtx.destination);
-			  	  mix.start();
-			    });
+	      const recordedArrayBuffer = await recordedChunksBlob.arrayBuffer();
+	  	  const recordedAudioBuffer = await audioCtx.decodeAudioData(recordedArrayBuffer);
+		    const recordedTrackSource = offlineAudioCtx.createBufferSource();
+	  	  recordedTrackSource.buffer = recordedAudioBuffer;
+	  	  recordedTrackSource.connect(offlineAudioCtx.destination);
 
+	  	  originTrackSource.start();
+	  	  recordedTrackSource.start();
+	  	  const render = await offlineAudioCtx.startRendering();
+	  	  const mixRawData = render.getChannelData(0);
+	  	  const mixDataBlob = new Blob(mixRawData);
+	  	  var mix = audioCtx.createBufferSource();
+	  	  mix.buffer = render;
+	  	  mix.connect(audioCtx.destination);
+	  	  mix.start();
+		});
 
-			    mediaRecorder.addEventListener('stop', function() {
-			      downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
-			      downloadLink.download = 'acetest.wav';
-			    });
-		  })
-		};
+  	mediaRecorder.start();
+  	trackSource.start();
 
-	  navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-	       .then(handleSuccess);
+	  };
+
+	  navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(handleMicrophoneSuccess);
 	</script>
 
 
