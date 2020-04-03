@@ -23,38 +23,49 @@
 	  	});
       const trackAnal = audioCtx.createAnalyser();
       trackAnal.maxDecibels = 0;
+      trackAnal.smoothingTimeConstant = 0.9;
+      trackAnal.fftSize = 32;
       const trackProcessor = audioCtx.createScriptProcessor(1024, 1, 1);
       let trackAmplitudeArray = new Uint8Array(trackAnal.frequencyBinCount);
       trackSource.connect(trackAnal);
       trackAnal.connect(trackProcessor);
-      let trackMax = 0;
+      let trackAvg = 0;
+      let trackTotalOfSamples = 0;
+      let trackSamples = 0;
       trackProcessor.onaudioprocess = function() {
         //console.log('processing'); //works
         //anal.getByteTimeDomainData(amplitudeArray);
-        trackAnal.getByteFrequencyData(amplitudeArray);
+        trackAnal.getByteFrequencyData(trackAmplitudeArray);
         //console.log(amplitudeArray);
-        let sampleMax = amplitudeArray.reduce((a,b) => Math.max(a,b));
-        trackMax  = Math.max(trackMax,sampleMax);
-        //console.log(trackMax);
+        let sampleTotal = trackAmplitudeArray.reduce((a,b) => a+b)/trackAmplitudeArray.length;
+        trackTotalOfSamples += sampleTotal;
+        trackSamples++;
+        trackAvg = trackTotalOfSamples/trackSamples;
+        //console.log('trackAvg' + trackAvg);
+        //console.log(trackAmplitudeArray);
       }
 
       const streamSource = audioCtx.createMediaStreamSource(stream);
       const anal = audioCtx.createAnalyser();
       anal.maxDecibels = 0;
-      anal.smoothingTimeConstant
+      anal.smoothingTimeConstant = 0.9;
+      anal.fftSize = 32;
       const processor = audioCtx.createScriptProcessor(1024, 1, 1);
       let amplitudeArray = new Uint8Array(anal.frequencyBinCount);
       streamSource.connect(anal);
       anal.connect(processor);
-      let max = 0;
+      let avg = 0;
+      let totalOfSamples = 0;
+      let samples = 0;
       processor.onaudioprocess = function() {
-        //console.log('processing'); //works
-        //anal.getByteTimeDomainData(amplitudeArray);
         anal.getByteFrequencyData(amplitudeArray);
-        //console.log(amplitudeArray);
-        let sampleMax = amplitudeArray.reduce((a,b) => Math.max(a,b));
-        max  = Math.max(max,sampleMax);
-        console.log(max);
+        let sampleTotal = amplitudeArray.reduce((a,b) => a+b)/amplitudeArray.length;
+        //console.log(sampleTotal);
+        totalOfSamples += sampleTotal;
+        samples++;
+        avg = totalOfSamples/samples;
+        //console.log(avg);
+        console.log(amplitudeArray)
       }
 
 	  	const options = {mimeType: 'audio/webm'};
