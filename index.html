@@ -5,6 +5,9 @@
       background-color: lightcoral;
       overflow-x: hidden;
       overflow-y: hidden;
+      color: darkslategrey;
+      margin: 0;
+      text-align: center;
     }
     .bigBubble {
       background-color: lightpink;
@@ -14,6 +17,7 @@
       width: 200vh;
       height: 200vh;
       border-radius:100vh;
+      z-index: -5;
     }
     .mediumBubble {
       background-color: lightgrey;
@@ -23,6 +27,7 @@
       width: 150vh;
       height: 150vh;
       border-radius:75vh;
+      z-index: -4;
     }
     .smallBubble {
       background-color: lightblue;
@@ -32,6 +37,7 @@
       width: 60vh;
       height: 60vh;
       border-radius:30vh;
+      z-index: -3;
     }
     .slowBubble {
       animation-name:bubbling;
@@ -56,12 +62,31 @@
         transform: scale(1);
       }
     }
+    h1 {
+      font-size: 30vw;
+      font-size: min(90vw, 90vh);
+      margin: 0;
+    }
+    h2 {
+      font-size: 10vw;
+      font-size: min(10vw,10vh);
+      margin: 0;
+      text-transform: uppercase;
+    }
+    h3 {
+      font-size: 5vw;
+      font-size: min(5vw,5vh);
+      margin: 0;
+    }
   </style>
 </head>
 <body>
   <div class="bigBubble slowBubble"></div>
   <div class="mediumBubble slowBubble"></div>
   <div class="smallBubble slowBubble"></div>
+  <h3>Turn up your volume.</h3>
+  <h2>Can you hear anything?</h2>
+  <h1>3</h1>
   <script>
     const audioCtx = new AudioContext();
     var originAudioBuffer;
