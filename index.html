@@ -8,6 +8,10 @@
       color: darkslategrey;
       margin: 0;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      min-height:100vh;
     }
     .bigBubble {
       background-color: lightpink;
@@ -92,7 +96,7 @@
   <div class="smallBubble slowBubble"></div>
   <h3>Turn up your volume.</h3>
   <h2>Can you hear anything?</h2>
-  <button><h2>Yes</h2></button>
+  <div><button><h2>Yes</h2></button></div>
   <script>
     const audioCtx = new AudioContext();
     var originAudioBuffer;
