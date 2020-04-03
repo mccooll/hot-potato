@@ -22,6 +22,24 @@
 	  		mediaRecorder.stop();
 	  	});
 
+      const streamSource = audioCtx.createMediaStreamSource(stream);
+      const anal = audioCtx.createAnalyser();
+      anal.maxDecibels = 0;
+      const processor = audioCtx.createScriptProcessor(1024, 1, 1);
+      let amplitudeArray = new Uint8Array(anal.frequencyBinCount);
+      streamSource.connect(anal);
+      anal.connect(processor);
+      let max = 0;
+      processor.onaudioprocess = function() {
+        console.log('processing'); //works
+        //anal.getByteTimeDomainData(amplitudeArray);
+        anal.getByteFrequencyData(amplitudeArray);
+        //console.log(amplitudeArray);
+        let sampleMax = amplitudeArray.reduce((a,b) => Math.max(a,b));
+        max  = Math.max(max,sampleMax);
+        console.log(max);
+      }
+
 	  	const options = {mimeType: 'audio/webm'};
 	  	const recordedChunks = [];
 	  	const mediaRecorder = new MediaRecorder(stream, options);
@@ -42,7 +60,6 @@
 	  	  recordedTrackSource.buffer = recordedAudioBuffer;
 	  	  recordedTrackSource.connect(offlineAudioCtx.destination);
 
-        const anal = offlineAudioCtx.createAnalyser();
         offlineAudioCtx.suspend(5).then(function() {
           var dataArray = new Uint8Array(anal.frequencyBinCount);
           anal.getByteFrequencyData(dataArray);
