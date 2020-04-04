@@ -8,6 +8,8 @@
       color: darkslategrey;
       margin: 0;
       text-align: center;
+    }
+    .content {
       display: flex;
       flex-direction: column;
       justify-content: space-around;
@@ -82,6 +84,16 @@
       font-size: min(5vw,5vh);
       margin: 0;
     }
+    .hide {
+      transition:all 1s;
+      filter: blur(5px);
+      opacity: 0;
+    }
+    .emerge {
+      transition:all 1s;
+      filter: blur(0px);
+      opacity: 1;
+    }
     button {
       border-radius:1vw;
       padding:1vw;
@@ -94,9 +106,11 @@
   <div class="bigBubble slowBubble"></div>
   <div class="mediumBubble slowBubble"></div>
   <div class="smallBubble slowBubble"></div>
-  <h3>Turn up your volume.</h3>
-  <h2>Can you hear anything?</h2>
-  <div><button><h2>Yes</h2></button></div>
+  <div class="content">
+    <h3>Turn up your volume.</h3>
+    <h2>Can you hear anything?</h2>
+    <div><button><h2>Yes</h2></button></div>
+  </div>
   <script>
     const audioCtx = new AudioContext();
     var originAudioBuffer;
