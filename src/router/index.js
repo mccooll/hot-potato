@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import HelloWorld from '../components/HelloWorld'
+import Welcome from '../components/Welcome'
+import OutputSetupAudio from '../components/OutputSetupAudio'
 
 Vue.use(VueRouter)
 
@@ -8,12 +9,18 @@ Vue.use(VueRouter)
   {
     path: '/',
     name: 'Home',
-    component: HelloWorld
+    component: Welcome
+  },
+  {
+    path: '/output-setup',
+    name: 'OutputSetupAudio',
+    component: OutputSetupAudio
   }
 ]
 
 const router = new VueRouter({
-  routes
+  routes: routes,
+  mode: "abstract"
 })
 
 export default router

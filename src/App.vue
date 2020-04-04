@@ -1,19 +1,26 @@
 <template>
   <div id="app">
-    <div class="bigBubble slowBubble"></div>
-    <div class="mediumBubble slowBubble"></div>
-    <div class="smallBubble slowBubble"></div>
-    <HelloWorld msg="Turn up your volume."/>
+    <div class="bigBubble" :class="{slowBubble: speed===1, fastBubble: speed===2}"></div>
+    <div class="mediumBubble" :class="{slowBubble: speed===1, fastBubble: speed===2}"></div>
+    <div class="smallBubble" :class="{slowBubble: speed===1, fastBubble: speed===2}"></div>
+    <router-view @bubble="switchBubbles"></router-view>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+  },
+  data: () => ({
+    speed: 0
+  }),
+  created: function() {
+    this.$router.push("/");
+  },
+  methods: {
+    switchBubbles: function(speed) { this.speed = speed }
   }
 }
 </script>
