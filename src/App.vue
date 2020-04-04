@@ -17,7 +17,7 @@ export default {
     speed: 0
   }),
   created: function() {
-    this.$router.push("/");
+    this.$router.push("/1");
   },
   methods: {
     switchBubbles: function(speed) { this.speed = speed }

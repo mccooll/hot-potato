@@ -6,20 +6,17 @@
 
 <script>
 export default {
-  name: 'Welcome',
   data: () => ({
     hide: true
   }),
+  props: ['soundServices'],
   mounted: function() {
+    this.soundServices.fetchBaseAudio();
     setTimeout(() => this.hide = false );
     setTimeout(() => {
       this.hide = true;
-      setTimeout(() => this.$router.push("output-setup"), 1000 );
+      setTimeout(() => this.$router.push("2"), 1000 );
     }, 3000);
   }
 }
 </script>
-
-<style scoped>
-
-</style>
