@@ -113,14 +113,13 @@
   </div>
   <script>
     const audioCtx = new AudioContext();
-    var originAudioBuffer;
     let duration = 0; //messy
     const maxDecibels = -30;
     const minDecibels = -50;
     async function load() {     
       const response = await fetch('sample.mp3');
       const arrayBuffer = await response.arrayBuffer();
-      originAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+      const originAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
       duration = originAudioBuffer.duration; //messy
       const trackSource = audioCtx.createBufferSource();
       trackSource.buffer = originAudioBuffer;
