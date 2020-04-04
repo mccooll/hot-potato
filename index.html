@@ -124,6 +124,48 @@
       trackSource.connect(audioCtx.destination);
       return trackSource;
     }
+
+    class VolumeAnalyser {
+      
+      samplesTotal = 0;
+      numberOfSamples = 0;
+      
+      constructor(sourceNode) {
+        let anal = audioCtx.createAnalyser();
+        anal.maxDecibels = -30;
+        anal.minDecibels = -50;
+        anal.smoothingTimeConstant = 0.9;
+        anal.fftSize = 32;
+        
+        const processor = audioCtx.createScriptProcessor(1024, 1, 1);
+
+        sourceNode.connect(anal);
+        anal.connect(processor);
+        
+        this.amplitudeArray = new Uint8Array(anal.frequencyBinCount);
+        processor.onaudioprocess = this.process;
+
+        this.anal = anal;
+      }
+
+      process() {
+        this.anal.getByteFrequencyData(this.amplitudeArray);
+        let sampleTotal = (this.amplitudeArray[0]+this.amplitudeArray[1])/2;
+        if(sampleTotal > 0) {
+          this.samplesTotal += sampleTotal;
+          this.numberOfSamples++;
+        }
+      }
+
+      getAverageVolume() {
+        return samplesTotal/numberOfSamples;
+      }
+
+      disconnect() {
+        this.anal.disconnect();
+      }
+    }
+
     async function handleMicrophoneSuccess(stream) {
       let trackSource = await load();
       trackSource.addEventListener('ended', () => {
