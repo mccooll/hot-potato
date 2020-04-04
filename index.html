@@ -145,18 +145,13 @@
       let trackTotalOfSamples = 0;
       let trackSamples = 0;
       trackProcessor.onaudioprocess = function() {
-        //console.log('processing'); //works
-        //anal.getByteTimeDomainData(amplitudeArray);
         trackAnal.getByteFrequencyData(trackAmplitudeArray);
-        //console.log(amplitudeArray);
         let sampleTotal = (trackAmplitudeArray[0]+trackAmplitudeArray[1])/2;
         if(sampleTotal > 0) {
           trackTotalOfSamples += sampleTotal;
           trackSamples++;
           trackAvg = trackTotalOfSamples/trackSamples;
         }
-        //console.log('trackAvg' + trackAvg);
-        //console.log(trackAmplitudeArray);
       }
 
       const streamSource = audioCtx.createMediaStreamSource(stream);
@@ -176,14 +171,11 @@
         console.log('processing');
         anal.getByteFrequencyData(amplitudeArray);
         let sampleTotal = (amplitudeArray[0]+amplitudeArray[1])/2;
-        //console.log(sampleTotal);
         if(sampleTotal > 0) {
           totalOfSamples += sampleTotal;
           samples++;
           avg = totalOfSamples/samples;
         }
-        //console.log(avg);
-        //console.log(amplitudeArray)
       }
 
       const options = {mimeType: 'audio/webm'};
@@ -229,7 +221,7 @@
 
     };
 
-    //navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(handleMicrophoneSuccess);
+    navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(handleMicrophoneSuccess);
   </script>
 </body>
 </html>
