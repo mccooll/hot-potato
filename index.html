@@ -113,8 +113,6 @@
   </div>
   <script>
     const audioCtx = new AudioContext();
-    const maxDecibels = -30;
-    const minDecibels = -50;
     async function load() {     
       const response = await fetch('sample.mp3');
       const arrayBuffer = await response.arrayBuffer();
@@ -129,23 +127,21 @@
       
       samplesTotal = 0;
       numberOfSamples = 0;
-      
+
       constructor(sourceNode) {
-        let anal = audioCtx.createAnalyser();
-        anal.maxDecibels = -30;
-        anal.minDecibels = -50;
-        anal.smoothingTimeConstant = 0.9;
-        anal.fftSize = 32;
+        this.anal = audioCtx.createAnalyser();
+        this.anal.maxDecibels = VolumeAnalyser.maxDecibels;
+        this.anal.minDecibels = VolumeAnalyser.minDecibels;
+        this.anal.smoothingTimeConstant = 0.9;
+        this.anal.fftSize = 32;
         
         const processor = audioCtx.createScriptProcessor(1024, 1, 1);
 
-        sourceNode.connect(anal);
-        anal.connect(processor);
+        sourceNode.connect(this.anal);
+        this.anal.connect(processor);
         
-        this.amplitudeArray = new Uint8Array(anal.frequencyBinCount);
-        processor.onaudioprocess = this.process;
-
-        this.anal = anal;
+        this.amplitudeArray = new Uint8Array(this.anal.frequencyBinCount);
+        processor.onaudioprocess = this.process.bind(this);
       }
 
       process() {
@@ -158,64 +154,29 @@
       }
 
       getAverageVolume() {
-        return samplesTotal/numberOfSamples;
+        return this.samplesTotal/this.numberOfSamples/255*VolumeAnalyser.getRange();
       }
 
       disconnect() {
         this.anal.disconnect();
       }
+
+      static getRange() {
+        return this.maxDecibels - this.minDecibels;
+      }
     }
+    VolumeAnalyser.maxDecibels = -30;
+    VolumeAnalyser.minDecibels = -50;
 
     async function handleMicrophoneSuccess(stream) {
       let trackSource = await load();
       trackSource.addEventListener('ended', () => {
         mediaRecorder.stop();
       });
-      const trackAnal = audioCtx.createAnalyser();
-      trackAnal.maxDecibels = maxDecibels;
-      trackAnal.minDecibels = minDecibels;
-      trackAnal.smoothingTimeConstant = 0.9;
-      trackAnal.fftSize = 32;
-      const trackProcessor = audioCtx.createScriptProcessor(1024, 1, 1);
-      let trackAmplitudeArray = new Uint8Array(trackAnal.frequencyBinCount);
-      trackSource.connect(trackAnal);
-      trackAnal.connect(trackProcessor);
-      let trackAvg = 0;
-      let trackTotalOfSamples = 0;
-      let trackSamples = 0;
-      trackProcessor.onaudioprocess = function() {
-        trackAnal.getByteFrequencyData(trackAmplitudeArray);
-        let sampleTotal = (trackAmplitudeArray[0]+trackAmplitudeArray[1])/2;
-        if(sampleTotal > 0) {
-          trackTotalOfSamples += sampleTotal;
-          trackSamples++;
-          trackAvg = trackTotalOfSamples/trackSamples;
-        }
-      }
+      const trackAnal = new VolumeAnalyser(trackSource);
 
       const streamSource = audioCtx.createMediaStreamSource(stream);
-      const anal = audioCtx.createAnalyser();
-      anal.maxDecibels = maxDecibels;
-      anal.minDecibels = minDecibels;
-      anal.smoothingTimeConstant = 0.9;
-      anal.fftSize = 32;
-      const processor = audioCtx.createScriptProcessor(1024, 1, 1);
-      let amplitudeArray = new Uint8Array(anal.frequencyBinCount);
-      streamSource.connect(anal);
-      anal.connect(processor);
-      let avg = 0;
-      let totalOfSamples = 0;
-      let samples = 0;
-      processor.onaudioprocess = function() {
-        console.log('processing');
-        anal.getByteFrequencyData(amplitudeArray);
-        let sampleTotal = (amplitudeArray[0]+amplitudeArray[1])/2;
-        if(sampleTotal > 0) {
-          totalOfSamples += sampleTotal;
-          samples++;
-          avg = totalOfSamples/samples;
-        }
-      }
+      const anal = new VolumeAnalyser(streamSource);
 
       const options = {mimeType: 'audio/webm'};
       const recordedChunks = [];
@@ -240,7 +201,7 @@
         const recordedTrackSource = offlineAudioCtx.createBufferSource();
         recordedTrackSource.buffer = recordedAudioBuffer;
         const gain = offlineAudioCtx.createGain();
-        gain.gain.value = (trackAvg - avg)/255*(maxDecibels- minDecibels);
+        gain.gain.value = trackAnal.getAverageVolume() - anal.getAverageVolume();
         recordedTrackSource.connect(gain);
         gain.connect(offlineAudioCtx.destination);
 
