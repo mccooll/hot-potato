@@ -1,4 +1,22 @@
-# hot-potato-frontend
-Hot Potato! Pass it on! Singing Loop
+## Project setup
+```
+npm install
+```
 
-Suggested Python HTTP server to serve files, setup: https://gist.github.com/jgravois/5e73b56fa7756fd00b89#simplehttpserver-a-pythonic-approach
+### Compiles and hot-reloads for development
+```
+npm run serve
+```
+
+### Compiles and minifies for production
+```
+npm run build
+```
+
+### Lints and fixes files
+```
+npm run lint
+```
+
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).
