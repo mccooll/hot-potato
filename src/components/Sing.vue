@@ -19,7 +19,7 @@ export default {
   methods: {
     countdown: function() {
       this.hide = false;
-      setTimeout(() => {
+      let ref = setTimeout(() => {
         this.hide = true;
         setTimeout(() => {
           if(this.label > 1) {
@@ -28,10 +28,18 @@ export default {
           }
           else {
             this.label = '\u25cf';
-            this.recording = true;
             this.countdown();
-            this.soundServices.setupRecording();
-            this.soundServices.startRecording();
+            if(!this.recording) {
+              this.recording = true;
+              this.soundServices.setupRecording().then(() => {
+                this.soundServices.startRecording().then(() => {
+                  console.log('resolved');
+                  this.$router.push('6');
+                  console.log('pushed');
+                  clearTimeout(ref);
+                });
+              });
+            }
           }
         }, 1000)
       }, 1000)

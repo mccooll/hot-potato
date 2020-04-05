@@ -42,7 +42,8 @@ const routes = [
   },
   {
     path: '/6',
-    component: Mixer
+    component: Mixer,
+    props: { soundServices }
   }
 ]
 

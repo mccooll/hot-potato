@@ -49,7 +49,7 @@ export default class SoundServices {
     anal.disconnect();
   }
 
-  async setupRecording(stream) {
+  async setupRecording() {
     this.trackSource.addEventListener('ended', () => {
       this.mediaRecorder.stop();
       this.trackSource.disconnect();
@@ -58,14 +58,21 @@ export default class SoundServices {
       this.anal.disconnect();
     });
 
-    this.streamSource = audioCtx.createMediaStreamSource(stream);
+    this.streamSource = audioCtx.createMediaStreamSource(this.stream);
 
     const options = {mimeType: 'audio/webm'};
     const recordedChunks = [];
-    this.mediaRecorder = new MediaRecorder(stream, options);
+    this.mediaRecorder = new MediaRecorder(this.stream, options);
 
+    let that = this;
     this.mediaRecorder.addEventListener('stop', async function() {
-      await this.mix(recordedChunks, this.trackSource);
+      console.log(that)
+      try {
+        let render = await that.mix(recordedChunks, that.trackSource);
+        that.playMix(render);
+      } catch(e) {
+        console.log(e);
+      }
     });
     this.mediaRecorder.addEventListener('dataavailable', async function(e) { //assuming this event only happens after recording 
       if (e.data.size > 0) {
@@ -78,6 +85,10 @@ export default class SoundServices {
     this.anal = new VolumeAnalyser(this.streamSource);
     this.mediaRecorder.start();
     this.trackSource.start();
+    var doneResolver;
+    const donePromise = new Promise((resolve) => doneResolver = resolve);
+    this.trackSource.addEventListener('ended', () => doneResolver() )
+    return donePromise;
   }
 
   async mix(recordedChunks, trackSource) {
