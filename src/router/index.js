@@ -37,7 +37,8 @@ const routes = [
   },
   {
     path: '/5',
-    component: Sing
+    component: Sing,
+    props: { soundServices }
   },
   {
     path: '/6',
