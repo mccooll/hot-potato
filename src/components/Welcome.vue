@@ -11,11 +11,11 @@ export default {
   }),
   props: ['soundServices'],
   mounted: function() {
-    this.soundServices.fetchBaseAudio();
+    let promise = this.soundServices.fetchBaseAudio();
     setTimeout(() => this.hide = false );
     setTimeout(() => {
       this.hide = true;
-      setTimeout(() => this.$router.push("2"), 1000 );
+      setTimeout(() => this.$router.push( {name:"2", params: {readyPromise: promise} }), 1000 );
     }, 3000);
   }
 }

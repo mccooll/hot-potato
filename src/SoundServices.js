@@ -7,6 +7,7 @@ export default class SoundServices {
   streamSource;
   anal;
   mediaRecorder;
+  playSource;
 
   async fetchBaseAudio() {
     await this.sleep()
@@ -17,6 +18,23 @@ export default class SoundServices {
     trackSource.buffer = originAudioBuffer;
     trackSource.connect(audioCtx.destination);
     this.trackSource = trackSource;
+  }
+
+  playBaseAudio() {
+    if(this.trackSource) {
+      this.playSource = audioCtx.createBufferSource();
+      this.playSource.buffer = this.trackSource.buffer;
+      this.playSource.loop = true;
+      this.playSource.connect(audioCtx.destination);
+      this.playSource.start();
+    }
+  }
+
+  stopPlayingBaseAudio() {
+    if(this.playSource) {
+      this.playSource.disconnect();
+      this.playSource = null;
+    }
   }
 
   async requestMic() {

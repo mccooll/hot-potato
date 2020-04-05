@@ -20,7 +20,11 @@ const routes = [
   },
   {
     path: '/2',
-    component: OutputSetupAudio
+    name: '2',
+    component: OutputSetupAudio,
+    props: (route) => {
+      return { soundServices, ...route.params }
+    }
   },
   {
     path: '/3',
