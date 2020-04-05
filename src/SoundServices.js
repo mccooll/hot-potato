@@ -4,6 +4,7 @@ export default class SoundServices {
 
   trackSource;
   trackAnal;
+  stream;
   streamSource;
   anal;
   mediaRecorder;
@@ -38,7 +39,14 @@ export default class SoundServices {
   }
 
   async requestMic() {
-    navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+    this.stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+  }
+
+  async listen() {
+    const streamSource = audioCtx.createMediaStreamSource(this.stream);
+    const anal = new VolumeAnalyser(streamSource);
+    await anal.heardPromise;
+    anal.disconnect();
   }
 
   async setupRecording(stream) {
@@ -119,6 +127,8 @@ class VolumeAnalyser {
   
   samplesTotal = 0;
   numberOfSamples = 0;
+  heardResolver;
+  heardPromise = new Promise((resolve) => this.heardResolver = resolve);
 
   constructor(sourceNode) {
     this.anal = sourceNode.context.createAnalyser();
@@ -140,6 +150,7 @@ class VolumeAnalyser {
     this.anal.getByteFrequencyData(this.amplitudeArray);
     let sampleTotal = (this.amplitudeArray[0]+this.amplitudeArray[1])/2;
     if(sampleTotal > 0) {
+      this.heardResolver();
       this.samplesTotal += sampleTotal;
       this.numberOfSamples++;
     }

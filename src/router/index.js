@@ -28,7 +28,8 @@ const routes = [
   },
   {
     path: '/3',
-    component: InputSetupAudio
+    component: InputSetupAudio,
+    props: { soundServices }
   },
   {
     path: '/4',
