@@ -7,16 +7,14 @@ app.use(serveStatic(__dirname + "/dist"));
 app.post('/output', function(request, respond) {
 	var body = '';
 	var filepath = __dirname + "/dist/input";
-	request.on('data', function(data) {
-        body += data;
-    });
+	if(fs.existsSync(filepath)) {
+		fs.unlinkSync(filepath);
+	}
+	var writeStream = fs.createWriteStream(filepath);
+	request.pipe(writeStream);
+
     request.on('end', function (){
-    	if(fs.existsSync(filepath)) {
-    		fs.unlinkSync(filepath);
-    	}
-        fs.appendFile(filepath, body, function() {
-            respond.end();
-        });
+    	respond.end();
     });
 });
 var port = process.env.PORT || 5000;
