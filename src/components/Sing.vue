@@ -33,9 +33,7 @@ export default {
               this.recording = true;
               this.soundServices.setupRecording().then(() => {
                 this.soundServices.startRecording().then(() => {
-                  console.log('resolved');
                   this.$router.push('6');
-                  console.log('pushed');
                   clearTimeout(ref);
                 });
               });

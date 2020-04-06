@@ -66,7 +66,6 @@ export default class SoundServices {
 
     let that = this;
     this.mediaRecorder.addEventListener('stop', async function() {
-      console.log(that)
       try {
         let render = await that.mix(recordedChunks, that.trackSource);
         that.playMix(render);
@@ -98,7 +97,12 @@ export default class SoundServices {
     originTrackSource.buffer = trackSource.buffer;
     originTrackSource.connect(offlineAudioCtx.destination);
 
-    const recordedArrayBuffer = await recordedChunksBlob.arrayBuffer();
+    var recordedArrayBuffer;
+    try {
+      recordedArrayBuffer = await recordedChunksBlob.arrayBuffer();
+    } catch {
+      recordedArrayBuffer = await new Response(recordedChunksBlob).arrayBuffer();
+    }
     const recordedAudioBuffer = await audioCtx.decodeAudioData(recordedArrayBuffer);
     const recordedTrackSource = offlineAudioCtx.createBufferSource();
     recordedTrackSource.buffer = recordedAudioBuffer;
