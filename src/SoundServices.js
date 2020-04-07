@@ -11,7 +11,7 @@ export default class SoundServices {
   playSource;
 
   async fetchBaseAudio() {
-    await this.sleep()
+    //await this.sleep()
     const response = await fetch('input');
     const arrayBuffer = await response.arrayBuffer();
     const array = new Float32Array(arrayBuffer);
