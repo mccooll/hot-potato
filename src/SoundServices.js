@@ -12,11 +12,20 @@ export default class SoundServices {
 
   async fetchBaseAudio() {
     await this.sleep()
-    const response = await fetch('sample.mp3');
+    const response = await fetch('input');
     const arrayBuffer = await response.arrayBuffer();
-    const originAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    const array = new Float32Array(arrayBuffer);
+    const originAudioBuffer = audioCtx.createBuffer(1,array.length,48000);
+    originAudioBuffer.copyToChannel(array, 0);
     const trackSource = audioCtx.createBufferSource();
     trackSource.buffer = originAudioBuffer;
+
+    // const response = await fetch('sample.mp3');
+    // const arrayBuffer = await response.arrayBuffer();
+    // const originAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    // const trackSource = audioCtx.createBufferSource();
+    // trackSource.buffer = originAudioBuffer;
+
     trackSource.connect(audioCtx.destination);
     this.trackSource = trackSource;
   }
@@ -68,6 +77,7 @@ export default class SoundServices {
     this.mediaRecorder.addEventListener('stop', async function() {
       try {
         let render = await that.mix(recordedChunks, that.trackSource);
+        that.saveMix(render);
         that.playMix(render);
       } catch(e) {
         console.log(e);
@@ -126,8 +136,8 @@ export default class SoundServices {
 
   async saveMix(audioBuffer) {
     const mixRawData = audioBuffer.getChannelData(0);
-    const mixDataBlob = new Blob(mixRawData);
-    return mixDataBlob; //write to server
+    const mixDataBlob = new Blob([mixRawData]);
+    return fetch('output', {method: 'post', body: mixDataBlob});
   }
 
   timeout(ms) {
