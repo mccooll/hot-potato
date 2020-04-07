@@ -22,14 +22,15 @@ export default {
   },
   methods: {
     badBroswer() {
-      let x = new Blob();
-      if(!x.arrayBuffer) {
-        window.alert("This browser is not supported. Try firefox.");
-        return true;
-      } else if(!window.InstallTrigger) {
-        window.alert("Only firefox is supported, not chrome nor any other.");
-        return true;
-      }
+      // let x = new Blob();
+      // if(!x.arrayBuffer) {
+      //   window.alert("This browser is not supported. Try firefox.");
+      //   return true;
+      // } 
+      // else if(!window.InstallTrigger) {
+      //   window.alert("Only firefox is supported, not chrome nor any other.");
+      //   return true;
+      // }
       return false;
     }
   }
