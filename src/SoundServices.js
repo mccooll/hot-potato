@@ -134,8 +134,8 @@ export default class SoundServices {
     recordedTrackSource.connect(gain);
     gain.connect(offlineAudioCtx.destination);
 
-    originTrackSource.start();
     recordedTrackSource.start();
+    originTrackSource.start();
     const render = await offlineAudioCtx.startRendering();
     return render;
   }
@@ -165,6 +165,7 @@ class VolumeAnalyser {
   
   samplesTotal = 0;
   numberOfSamples = 0;
+  processCycle = 0;
   heardResolver;
   heardPromise = new Promise((resolve) => this.heardResolver = resolve);
 
@@ -172,21 +173,25 @@ class VolumeAnalyser {
     this.anal = sourceNode.context.createAnalyser();
     this.anal.maxDecibels = VolumeAnalyser.maxDecibels;
     this.anal.minDecibels = VolumeAnalyser.minDecibels;
-    this.anal.smoothingTimeConstant = 0.9;
+    this.anal.smoothingTimeConstant = 0;
     this.anal.fftSize = 32;
     
-    const processor = sourceNode.context.createScriptProcessor(0, 1, 1);
+    const processor = sourceNode.context.createScriptProcessor(0, 1, 0);
 
     sourceNode.connect(this.anal);
     this.anal.connect(processor);
     console.log(processor.bufferSize)
-    window.alert(processor.bufferSize)
     
     this.amplitudeArray = new Uint8Array(this.anal.frequencyBinCount);
     processor.onaudioprocess = this.process.bind(this);
   }
 
   process() {
+    if(this.processCycle < 10) {
+      this.processCycle++;
+      return;
+    }
+    this.processCycle = 0;
     this.anal.getByteFrequencyData(this.amplitudeArray);
     let sampleTotal = (this.amplitudeArray[0]+this.amplitudeArray[1]);
     if(sampleTotal > 0) {
