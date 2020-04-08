@@ -53,6 +53,13 @@ export default class SoundServices {
       echoCancellation: false,
       channelCount: 1
     }, video: false })
+    this.micDiagnostic();
+  }
+
+  micDiagnostic() {
+    let tracks = this.stream.getAudioTracks();
+    let track = tracks[0];
+    console.log(track.getSettings());
   }
 
   async listen() {
@@ -61,6 +68,8 @@ export default class SoundServices {
     await anal.heardPromise;
     anal.disconnect();
   }
+
+
 
   async setupRecording() {
     this.trackSource.addEventListener('ended', () => {
