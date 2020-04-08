@@ -22,7 +22,7 @@ export default {
   },
   methods: {
     badBroswer() {
-      let x = new Blob();
+      let x = new Response();
       if(!x.arrayBuffer) {
         window.alert("This browser is not supported. Try firefox.");
         return true;
