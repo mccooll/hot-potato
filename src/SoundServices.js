@@ -105,12 +105,8 @@ export default class SoundServices {
   startRecording() {
     this.trackAnal = new VolumeAnalyser(this.trackSource);
     this.anal = new VolumeAnalyser(this.streamSource);
-    let a = audioCtx.currentTime;
     this.mediaRecorder.start();
-    let b = audioCtx.currentTime;
     this.trackSource.start();
-    let c = audioCtx.currentTime;
-    window.alert("a"+a+"b"+b+"c"+c);
     var doneResolver;
     const donePromise = new Promise((resolve) => doneResolver = resolve);
     this.trackSource.addEventListener('ended', () => doneResolver() )
