@@ -48,7 +48,11 @@ export default class SoundServices {
   }
 
   async requestMic() {
-    this.stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+    this.stream = await navigator.mediaDevices.getUserMedia({ audio: {
+      autoGainControl: false,
+      echoCancellation: false,
+      channelCount: 1
+    }, video: false })
   }
 
   async listen() {
