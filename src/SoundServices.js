@@ -175,10 +175,12 @@ class VolumeAnalyser {
     this.anal.smoothingTimeConstant = 0.9;
     this.anal.fftSize = 32;
     
-    const processor = sourceNode.context.createScriptProcessor(1024, 1, 1);
+    const processor = sourceNode.context.createScriptProcessor(0, 1, 1);
 
     sourceNode.connect(this.anal);
     this.anal.connect(processor);
+    console.log(processor.bufferSize)
+    window.alert(processor.bufferSize)
     
     this.amplitudeArray = new Uint8Array(this.anal.frequencyBinCount);
     processor.onaudioprocess = this.process.bind(this);
@@ -186,11 +188,11 @@ class VolumeAnalyser {
 
   process() {
     this.anal.getByteFrequencyData(this.amplitudeArray);
-    let sampleTotal = (this.amplitudeArray[0]+this.amplitudeArray[1])/2;
+    let sampleTotal = (this.amplitudeArray[0]+this.amplitudeArray[1]);
     if(sampleTotal > 0) {
       this.heardResolver();
       this.samplesTotal += sampleTotal;
-      this.numberOfSamples++;
+      this.numberOfSamples += 2;
     }
   }
 
