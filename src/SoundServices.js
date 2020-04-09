@@ -53,7 +53,6 @@ export default class SoundServices {
       echoCancellation: false,
       channelCount: 1
     }, video: false })
-    this.micDiagnostic();
   }
 
   micDiagnostic() {
@@ -89,6 +88,10 @@ export default class SoundServices {
     let that = this;
     this.mediaRecorder.addEventListener('stop', async function() {
       try {
+        let tracks = this.stream.getAudioTracks();
+        let track = tracks[0];
+        track.stop();
+        this.stream.removeTrack(track);
         let render = await that.mix(recordedChunks, that.trackSource);
         that.saveMix(render);
         that.playMix(render);
@@ -180,7 +183,6 @@ class VolumeAnalyser {
 
     sourceNode.connect(this.anal);
     this.anal.connect(processor);
-    console.log(processor.bufferSize)
     
     this.amplitudeArray = new Uint8Array(this.anal.frequencyBinCount);
     processor.onaudioprocess = this.process.bind(this);
