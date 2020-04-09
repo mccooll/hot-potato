@@ -33,6 +33,7 @@ export default {
     color: darkslategrey;
     margin: 0;
     text-align: center;
+    touch-action: none;
   }
   .content {
     display: flex;
