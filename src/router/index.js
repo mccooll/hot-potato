@@ -6,6 +6,7 @@ import InputSetupAudio from '../components/InputSetupAudio'
 import Ready from '../components/Ready'
 import Sing from '../components/Sing'
 import Mixer from '../components/Mixer'
+import Upload from '../components/Upload'
 import SoundServices from '../SoundServices'
 
 const soundServices = new SoundServices();
@@ -43,6 +44,11 @@ const routes = [
   {
     path: '/6',
     component: Mixer,
+    props: { soundServices }
+  },
+  {
+    path: '/7',
+    component: Upload,
     props: { soundServices }
   }
 ]

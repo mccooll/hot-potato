@@ -8,7 +8,9 @@ export default class SoundServices {
   streamSource;
   anal;
   mediaRecorder;
+  recordedBuffer;
   playSource;
+  liveMixer;
 
   async fetchBaseAudio() {
     //await this.sleep()
@@ -92,9 +94,7 @@ export default class SoundServices {
         let track = tracks[0];
         track.stop();
         this.stream.removeTrack(track);
-        let render = await that.mix(recordedChunks, that.trackSource);
-        that.saveMix(render);
-        that.playMix(render);
+        that.liveMixer = new LiveMixer(await that.getRecordedBuffer(recordedChunks), that.trackSource.buffer, 2);
       } catch(e) {
         console.log(e);
       }
@@ -105,6 +105,19 @@ export default class SoundServices {
       }
     });
   }
+
+  async getRecordedBuffer(chunks) {
+    const chunksBlob = new Blob(chunks);
+    var arrayBuffer;
+    try {
+      arrayBuffer = await chunksBlob.arrayBuffer();
+    } catch {
+      arrayBuffer = await new Response(chunksBlob).arrayBuffer();
+    }
+    const recordedAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    return recordedAudioBuffer;
+  }
+
   startRecording() {
     this.trackAnal = new VolumeAnalyser(this.trackSource);
     this.anal = new VolumeAnalyser(this.streamSource);
@@ -116,22 +129,18 @@ export default class SoundServices {
     return donePromise;
   }
 
-  async mix(recordedChunks, trackSource) {
-    const recordedChunksBlob = new Blob(recordedChunks);
-    const offlineAudioCtx = new OfflineAudioContext(1, trackSource.buffer.duration*48000, 48000);
+  async mix(recordedBuffer, trackBuffer) {
+    const offlineAudioCtx = new OfflineAudioContext(1, trackBuffer.duration*48000, 48000);
     const originTrackSource = offlineAudioCtx.createBufferSource();
-    originTrackSource.buffer = trackSource.buffer;
-    originTrackSource.connect(offlineAudioCtx.destination);
+    originTrackSource.buffer = trackBuffer;
+    const delay = this.liveMixer.delay;
+    const delayNode = offlineAudioCtx.createDelay(delay);
+    delayNode.delayTime.setValueAtTime(delay, 0);
+    delayNode.connect(offlineAudioCtx.destination);
+    originTrackSource.connect(delayNode);
 
-    var recordedArrayBuffer;
-    try {
-      recordedArrayBuffer = await recordedChunksBlob.arrayBuffer();
-    } catch {
-      recordedArrayBuffer = await new Response(recordedChunksBlob).arrayBuffer();
-    }
-    const recordedAudioBuffer = await audioCtx.decodeAudioData(recordedArrayBuffer);
     const recordedTrackSource = offlineAudioCtx.createBufferSource();
-    recordedTrackSource.buffer = recordedAudioBuffer;
+    recordedTrackSource.buffer = recordedBuffer;
     const gain = offlineAudioCtx.createGain();
     gain.gain.value = this.trackAnal.getAverageVolume() - this.anal.getAverageVolume();
     recordedTrackSource.connect(gain);
@@ -143,14 +152,55 @@ export default class SoundServices {
     return render;
   }
 
-  playMix(audioBuffer) {
+  playMixed(audioBuffer) {
     var mix = audioCtx.createBufferSource();
     mix.buffer = audioBuffer;
     mix.connect(audioCtx.destination);
+    this.setupMixedDownload(mix);
     mix.start();
   }
 
-  async saveMix(audioBuffer) {
+  setupMixedDownload(mixNode) {
+    var stream = audioCtx.createMediaStreamDestination();
+    var mediaRecorder = new MediaRecorder(stream.stream);
+    mixNode.connect(stream);
+
+    var chunks = [];
+    mixNode.addEventListener('ended', () => {
+      mediaRecorder.stop();
+    })
+    mediaRecorder.addEventListener('stop', async function() {
+      try {
+        var blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
+        var url = URL.createObjectURL(blob);
+        console.log(url);
+      } catch(e) {
+        console.log(e);
+      }
+    });
+    mediaRecorder.addEventListener('dataavailable', async function(e) { //assuming this event only happens after recording 
+      if (e.data.size > 0) {
+        chunks.push(e.data);
+      }
+    });
+    mediaRecorder.start();
+  }
+
+  // playMixing(buffers) {
+  //   let time = audioCtx.currentTime;
+  //   buffers.forEach(buffer => {
+  //     let source = audioCtx.createBufferSource();
+  //     source.buffer = buffer;
+  //     source.connect(audioCtx.destination);
+  //     source.start(time + 1);
+  //   })
+  // }
+
+  // delayRecordingPlaying(source, delay) {
+  //   source.
+  // }
+
+  async saveMixed(audioBuffer) {
     const mixRawData = audioBuffer.getChannelData(0);
     const mixDataBlob = new Blob([mixRawData]);
     return fetch('output', {method: 'post', body: mixDataBlob});
@@ -204,7 +254,7 @@ class VolumeAnalyser {
   }
 
   getAverageVolume() {
-    return this.samplesTotal/this.numberOfSamples/255*VolumeAnalyser.getRange();
+    return this.numberOfSamples === 0 ? 0: this.samplesTotal/this.numberOfSamples/255*VolumeAnalyser.getRange();
   }
 
   disconnect() {
@@ -217,3 +267,69 @@ class VolumeAnalyser {
 }
 VolumeAnalyser.maxDecibels = -30;
 VolumeAnalyser.minDecibels = -50;
+
+class LiveMixer {
+  delay;
+  delayNode;
+  gainNode;
+  recordedNode;
+  baseNode;
+  ctx;
+  killed;
+
+  constructor(recordedBuffer, baseBuffer, gain) {
+    this.killed = false;
+    console.log((recordedBuffer.length - baseBuffer.length)/48000)
+
+    this.ctx = new AudioContext();    
+    
+    this.delay = 0;
+    this.delayNode = this.ctx.createDelay(1);
+    this.delayNode.connect(this.ctx.destination);
+
+    this.gainNode = this.ctx.createGain();
+    this.gainNode.gain.value = gain;
+    this.gainNode.connect(this.ctx.destination);
+
+    this.setupSingleUseNodes(recordedBuffer, baseBuffer);
+  }
+
+  setupSingleUseNodes(recordedBuffer, baseBuffer) {
+    if(this.recordedNode) this.recordedNode.disconnect();
+    this.recordedNode = this.bufferToSource(recordedBuffer);
+    this.recordedNode.connect(this.gainNode);
+    if(this.baseNode) this.baseNode.disconnect();
+    this.baseNode = this.bufferToSource(baseBuffer);
+    this.baseNode.connect(this.delayNode);
+    let time = this.ctx.currentTime;
+    let length = Math.min(recordedBuffer.length, baseBuffer.length)/48000;
+    this.recordedNode.start(time + 1, 0, length);
+    this.baseNode.start(time +1, 0, length);
+    this.baseNode.addEventListener('ended', () => {
+      if(!this.killed) {
+        this.setupSingleUseNodes(recordedBuffer, baseBuffer);
+      }
+    })
+  }
+
+  kill() {
+    this.killed = true;
+    this.stop();
+  }
+
+  stop() {
+    this.recordedNode.stop();
+    this.baseNode.stop();
+  }
+
+  bufferToSource(buffer) {
+    let source = this.ctx.createBufferSource();
+    source.buffer = buffer;
+    return source;
+  }
+
+  setRecordingDelay(delay) {
+    this.delay = delay;
+    this.delayNode.delayTime.linearRampToValueAtTime(delay, this.ctx.currentTime + 2)
+  }
+}
