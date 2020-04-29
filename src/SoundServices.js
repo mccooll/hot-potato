@@ -136,7 +136,7 @@ export default class SoundServices {
     const originTrackSource = offlineAudioCtx.createBufferSource();
     originTrackSource.buffer = trackBuffer;
     const delay = this.liveMixer.delay;
-    const delayNode = offlineAudioCtx.createDelay(delay);
+    const delayNode = offlineAudioCtx.createDelay(Math.max(delay,1));
     delayNode.delayTime.setValueAtTime(delay, 0);
     delayNode.connect(offlineAudioCtx.destination);
     originTrackSource.connect(delayNode);
