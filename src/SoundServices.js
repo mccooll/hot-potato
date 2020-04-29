@@ -221,6 +221,7 @@ class VolumeAnalyser {
   processCycle = 0;
   heardResolver;
   heardPromise = new Promise((resolve) => this.heardResolver = resolve);
+  processor;
 
   constructor(sourceNode) {
     this.anal = sourceNode.context.createAnalyser();
@@ -229,13 +230,15 @@ class VolumeAnalyser {
     this.anal.smoothingTimeConstant = 0;
     this.anal.fftSize = 32;
     
-    const processor = sourceNode.context.createScriptProcessor(0, 1, 0);
+    this.processor = sourceNode.context.createScriptProcessor(0, 1, 1);
 
     sourceNode.connect(this.anal);
-    this.anal.connect(processor);
+    this.anal.connect(this.processor);
+    this.processor.connect(sourceNode.context.destination)
     
     this.amplitudeArray = new Uint8Array(this.anal.frequencyBinCount);
-    processor.onaudioprocess = this.process.bind(this);
+    this.processor.onaudioprocess = this.process.bind(this);
+    window.pr = this.processor
   }
 
   process() {
