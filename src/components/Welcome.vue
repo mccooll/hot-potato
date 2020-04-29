@@ -1,9 +1,7 @@
 <template>
   <div class="content" :class="{hide: hide, emerge: !hide}">
-    <div>
-      <h2>Get ready to sing</h2>
-      <h3>{{title}}</h3>
-    </div>
+    <h2>Get ready to sing</h2>
+    <h2>{{title}}</h2>
   </div>
 </template>
 
@@ -36,3 +34,9 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.content {
+  justify-content: space-evenly;
+}
+</style>
