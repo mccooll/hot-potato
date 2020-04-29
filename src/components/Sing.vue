@@ -16,42 +16,6 @@ export default {
     lyrics: "Amazing Grace, how sweet the sound\n\
 That saved a wretch like me\n\
 I once was lost, but now am found\n\
-Was blind but now I see\n\
-Amazing Grace, how sweet the sound\n\
-That saved a wretch like me\n\
-I once was lost, but now am found\n\
-Was blind but now I see\n\
-Amazing Grace, how sweet the sound\n\
-That saved a wretch like me\n\
-I once was lost, but now am found\n\
-Was blind but now I see\n\
-Amazing Grace, how sweet the sound\n\
-That saved a wretch like me\n\
-I once was lost, but now am found\n\
-Was blind but now I see\n\
-Amazing Grace, how sweet the sound\n\
-That saved a wretch like me\n\
-I once was lost, but now am found\n\
-Was blind but now I see\n\
-Amazing Grace, how sweet the sound\n\
-That saved a wretch like me\n\
-I once was lost, but now am found\n\
-Was blind but now I see\n\
-Amazing Grace, how sweet the sound\n\
-That saved a wretch like me\n\
-I once was lost, but now am found\n\
-Was blind but now I see\n\
-Amazing Grace, how sweet the sound\n\
-That saved a wretch like me\n\
-I once was lost, but now am found\n\
-Was blind but now I seexyz\n\
-Amazing Grace, how sweet the sound\n\
-That saved a wretch like me\n\
-I once was lost, but now am found\n\
-Was blind but now I see\n\
-Amazing Grace, how sweet the sound\n\
-That saved a wretch like me\n\
-I once was lost, but now am found\n\
 Was blind but now I see",
     scrollDistance: 0,
     trackSeconds: 0
