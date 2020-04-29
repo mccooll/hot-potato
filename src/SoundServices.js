@@ -231,15 +231,16 @@ class VolumeAnalyser {
     this.anal.smoothingTimeConstant = 0;
     this.anal.fftSize = 32;
     
-    this.processor = sourceNode.context.createScriptProcessor(0, 1, 1);
+    this.processor = sourceNode.context.createScriptProcessor(0, 1, 0);
+    //just in case https://stackoverflow.com/questions/24338144/chrome-onaudioprocess-stops-getting-called-after-a-while
+    if(window.chrome) this.processor = sourceNode.context.createScriptProcessor(0, 1, 1); //https://github.com/WebAudio/web-audio-api/issues/345
 
     sourceNode.connect(this.anal);
     this.anal.connect(this.processor);
-    this.processor.connect(sourceNode.context.destination)
+    if(window.chrome) this.processor.connect(sourceNode.context.destination) //https://github.com/WebAudio/web-audio-api/issues/345
     
     this.amplitudeArray = new Uint8Array(this.anal.frequencyBinCount);
     this.processor.onaudioprocess = this.process.bind(this);
-    window.pr = this.processor
   }
 
   process() {
@@ -263,6 +264,7 @@ class VolumeAnalyser {
 
   disconnect() {
     this.anal.disconnect();
+    this.processor.disconnect();
   }
 
   static getRange() {
