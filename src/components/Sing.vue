@@ -1,13 +1,13 @@
 <template>
   <div class="content">
-    <h1 :class="{ hide: hide, emerge: !hide, recording: recording }">{{ label }}</h1>
+    <h1 :class="{ hide: hide, recording: recording }">{{ label }}</h1>
   </div>
 </template>
 
 <script>
 export default {
   data: () => ({
-    hide: true,
+    hide: false,
     label: 3,
     recording: false
   }),
@@ -18,29 +18,29 @@ export default {
   },
   methods: {
     countdown: function() {
-      this.hide = false;
-      let ref = setTimeout(() => {
-        this.hide = true;
-        setTimeout(() => {
-          if(this.label > 1) {
-            this.label = this.label - 1;
-            this.countdown();
-          }
-          else {
-            this.label = '\u25cf';
-            this.countdown();
-            if(!this.recording) {
-              this.recording = true;
-              this.soundServices.setupRecording().then(() => {
-                this.soundServices.startRecording().then(() => {
-                  this.$router.push('6');
-                  clearTimeout(ref);
-                });
+      setTimeout(() => {
+         this.hide = true
+      }, 100)
+      setTimeout(() => {
+        this.hide = false;
+        if(this.label > 1) {
+          this.label = this.label - 1;
+          this.countdown();
+        }
+        else {
+          this.label = '\u25cf';
+          this.countdown();
+          if(!this.recording) {
+            this.recording = true;
+            this.soundServices.setupRecording().then(() => {
+              this.soundServices.startRecording().then(() => {
+                this.$router.push('6');
+                clearTimeout(ref);
               });
-            }
+            });
           }
-        }, 1000)
-      }, 1000)
+        }
+      }, 1100)
     }
   }
 }
