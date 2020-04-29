@@ -1,12 +1,16 @@
 <template>
   <div class="content" :class="{hide: hide, emerge: !hide}">
-    <h2>Get ready to sing</h2>
+    <div>
+      <h2>Get ready to sing</h2>
+      <h3>{{title}}</h3>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
   data: () => ({
+    title: 'Amazing Grace',
     hide: true
   }),
   props: ['soundServices'],

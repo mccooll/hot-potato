@@ -56,6 +56,7 @@ export default class SoundServices {
       echoCancellation: false,
       channelCount: 1
     }, video: false })
+    return this.stream;
   }
 
   micDiagnostic() {

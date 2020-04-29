@@ -1,10 +1,10 @@
 <template>
   <div class="content" :class="{ hide: hide, emerge: !hide }">
-    <h3>{{title}}</h3>
     <h2>Are you ready to sing?</h2>
     <div>
       <button @click="yes"><h2>Yes</h2></button>
     </div>
+    <h3>{{title}}</h3>
   </div>
 </template>
 
