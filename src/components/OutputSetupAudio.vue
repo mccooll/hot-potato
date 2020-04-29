@@ -6,6 +6,7 @@
     <h2 :class="{ hide: loading, emerge: !loading }">Can you hear anything?</h2>
     <div :class="{ hide: loading, emerge: !loading }">
       <button @click="yes"><h2>Yes</h2></button>
+      <button @click="no"><h2>No</h2></button>
     </div>
   </div>
 </template>
@@ -35,6 +36,9 @@ export default {
         this.soundServices.stopPlayingBaseAudio();
         this.$router.push('3');
       }
+    },
+    no: function() {
+      this.soundServices.playBaseAudio();
     },
     rotateMessage:  function() {
       this.hide = false;

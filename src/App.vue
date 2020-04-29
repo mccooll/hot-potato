@@ -123,6 +123,7 @@ export default {
   button {
     border-radius:1vw;
     padding:1vw;
+    margin: 1vw;
     background: rgba(255,255,255,0.5);
     color: darkslategrey;
   }

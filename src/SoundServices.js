@@ -34,6 +34,7 @@ export default class SoundServices {
 
   playBaseAudio() {
     if(this.trackSource) {
+      if(this.playSource) this.playSource.disconnect();
       this.playSource = audioCtx.createBufferSource();
       this.playSource.buffer = this.trackSource.buffer;
       this.playSource.loop = true;
