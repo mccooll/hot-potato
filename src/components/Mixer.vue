@@ -16,7 +16,7 @@
 <script>
 export default {
   data: () => ({
-    time: 10
+    time: 0
   }),
   props: ['soundServices'],
   mounted: function() {
@@ -32,6 +32,7 @@ export default {
       }
     },
     soundsGood: function() {
+      this.setTime();
       this.soundServices.liveMixer.kill();
       this.$router.push('7');
     }
