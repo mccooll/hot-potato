@@ -75,10 +75,10 @@ Was blind but now I see",
       this.trackSeconds = seconds > 0 ? seconds : 0;
     },
     countdown: function() {
-      setTimeout(() => {
+      let ref1 = setTimeout(() => {
          this.hide = true
       }, 100)
-      setTimeout(() => {
+      let ref2 = setTimeout(() => {
         this.hide = false;
         if(this.label > 1) {
           this.label = this.label - 1;
@@ -92,7 +92,8 @@ Was blind but now I see",
             this.soundServices.setupRecording().then(() => {
               this.soundServices.startRecording().then(() => {
                 this.$router.push('6');
-                clearTimeout(ref);
+                clearTimeout(ref1);
+                clearTimeout(ref2);
               });
             });
           }
