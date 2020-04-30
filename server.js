@@ -4,7 +4,7 @@ var path = require('path');
 var serveStatic = require('serve-static');
 app = express();
 app.use (function (req, res, next) {
-    if (req.secure || !process.env.NODE_ENV) {
+    if (req.secure || req.get('x-forwarded-proto') == 'https' || !process.env.NODE_ENV) {
         next();
     } else {
         res.redirect('https://' + req.headers.host + req.url);
