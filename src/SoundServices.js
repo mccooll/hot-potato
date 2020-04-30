@@ -284,7 +284,6 @@ class VolumeAnalyser {
     this.numberOfSamples++; //calibration samples only
     if(this.numberOfSamples > 10)
     {
-      this.anal.minDecibels += 2;
       VolumeAnalyser.minDecibels = this.anal.minDecibels; 
       this.calibrating = false;
       this.numberOfSamples = 0; // no relevant samples (reset)
@@ -297,7 +296,7 @@ class VolumeAnalyser {
       this.anal.minDecibels = -100;
       this.calibrating = true;
     } else {
-      this.anal.minDecibels++;
+      this.anal.minDecibels+=3;
       this.numberOfSamples = 0; // no relevant samples
       this.samplesTotal = 0; // no relevant sample total
       console.log(this.anal.minDecibels);
