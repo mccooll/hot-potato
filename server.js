@@ -3,6 +3,13 @@ var fs = require('fs');
 var path = require('path');
 var serveStatic = require('serve-static');
 app = express();
+app.use (function (req, res, next) {
+	if (!process.env.NODE_ENV || req.secure) {
+		next();
+	} else {
+		res.redirect('https://' + req.headers.host + req.url);
+	}
+});
 app.use(serveStatic(__dirname + "/dist"));
 app.post('/output', function(request, respond) {
 	var body = '';
@@ -14,7 +21,7 @@ app.post('/output', function(request, respond) {
 	request.pipe(writeStream);
 
     request.on('end', function (){
-    	respond.end();
+       respond.end();
     });
 });
 var port = process.env.PORT || 5000;
