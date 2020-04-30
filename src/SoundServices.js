@@ -261,16 +261,11 @@ class VolumeAnalyser {
       if(!this.calibrating) {
         this.heardResolver();
       } else {
-        if(this.numberOfSamples > 10)
+        if(this.numberOfSamples > 10) //move to calibrate
         {
           this.calibrate();
         }
       }
-    } else {
-      if(this.calibrating && this.anal.minDecibels!=VolumeAnalyser.initCalibrationDecibels) {
-        this.sealCalibration();
-      }
-      
     }
   }
 
@@ -287,17 +282,6 @@ class VolumeAnalyser {
     return this.maxDecibels - this.minDecibels;
   }
 
-  sealCalibration() {
-    this.numberOfSamples++; //calibration samples only
-    if(this.numberOfSamples > 5)
-    {
-      VolumeAnalyser.minDecibels = this.anal.minDecibels; 
-      this.calibrating = false;
-      this.numberOfSamples = 0; // no relevant samples (reset)
-      this.samplesTotal = 0; // no relevant sample total (reset)
-    }
-  }
-
   calibrate() {
     if(!this.calibrating) {
       this.anal.minDecibels = VolumeAnalyser.initCalibrationDecibels;
@@ -308,6 +292,7 @@ class VolumeAnalyser {
       VolumeAnalyser.minDecibels = this.anal.minDecibels;
       this.numberOfSamples = 0; // no relevant samples
       this.samplesTotal = 0; // no relevant sample total
+      this.calibrating = false;
       console.log(this.anal.minDecibels);
     }
   }
