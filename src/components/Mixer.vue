@@ -5,7 +5,7 @@
       <h3>Singing timing adjustment</h3>
       <h3><span v-if="time > 0">+</span>{{ time.toString() }} ms</h3>
       <input v-model="time" v-on:change="setTime" type="range" id="volume" name="volume"
-         min="0" max="500">
+         min="-500" max="500">
     </div>
     <div>
       <button @click="soundsGood"><h3>Sounds good to me</h3></button>
@@ -40,5 +40,8 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
+input {
+  width: 75vw;
+}
 </style>
