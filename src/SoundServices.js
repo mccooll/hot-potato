@@ -304,7 +304,7 @@ class VolumeAnalyser {
       VolumeAnalyser.minDecibels = this.anal.minDecibels;
       this.calibrating = true;
     } else {
-      this.anal.minDecibels+=this.getAverageVolume()+15;
+      this.anal.minDecibels+=this.getAverageVolume()+0.3*this.getAverageVolume();
       VolumeAnalyser.minDecibels = this.anal.minDecibels;
       this.numberOfSamples = 0; // no relevant samples
       this.samplesTotal = 0; // no relevant sample total
