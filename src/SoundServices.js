@@ -264,7 +264,7 @@ class VolumeAnalyser {
         this.calibrate();
       }
     } else {
-      if(this.calibrating && this.anal.minDecibels!=-100) {
+      if(this.calibrating && this.anal.minDecibels!=VolumeAnalyser.initCalibrationDecibels) {
         this.sealCalibration();
       }
       
@@ -297,7 +297,7 @@ class VolumeAnalyser {
 
   calibrate() {
     if(!this.calibrating) {
-      this.anal.minDecibels = -100;
+      this.anal.minDecibels = VolumeAnalyser.initCalibrationDecibels;
       VolumeAnalyser.minDecibels = this.anal.minDecibels;
       this.calibrating = true;
     } else {
@@ -311,6 +311,7 @@ class VolumeAnalyser {
 }
 VolumeAnalyser.maxDecibels = -30;
 VolumeAnalyser.minDecibels = -50;
+VolumeAnalyser.initCalibrationDecibels = -100;
 
 class LiveMixer {
   delay;
