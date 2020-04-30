@@ -256,6 +256,7 @@ class VolumeAnalyser {
     let sampleTotal = (this.amplitudeArray[0]+this.amplitudeArray[1]);
     if(sampleTotal > 0) {
       this.samplesTotal += sampleTotal;
+      console.log(sampleTotal);
       this.numberOfSamples += 2;
       if(!this.calibrating) {
         this.heardResolver();
@@ -263,7 +264,10 @@ class VolumeAnalyser {
         this.calibrate();
       }
     } else {
-      this.sealCalibration();
+      if(this.calibrating && this.anal.minDecibels!=-100) {
+        this.sealCalibration();
+      }
+      
     }
   }
 
@@ -282,7 +286,7 @@ class VolumeAnalyser {
 
   sealCalibration() {
     this.numberOfSamples++; //calibration samples only
-    if(this.numberOfSamples > 10)
+    if(this.numberOfSamples > 5)
     {
       VolumeAnalyser.minDecibels = this.anal.minDecibels; 
       this.calibrating = false;
@@ -294,9 +298,11 @@ class VolumeAnalyser {
   calibrate() {
     if(!this.calibrating) {
       this.anal.minDecibels = -100;
+      VolumeAnalyser.minDecibels = this.anal.minDecibels;
       this.calibrating = true;
     } else {
-      this.anal.minDecibels+=3;
+      this.anal.minDecibels+=Math.max(5,this.getAverageVolume()/2);
+      VolumeAnalyser.minDecibels = this.anal.minDecibels;
       this.numberOfSamples = 0; // no relevant samples
       this.samplesTotal = 0; // no relevant sample total
       console.log(this.anal.minDecibels);
