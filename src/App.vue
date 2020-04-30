@@ -34,6 +34,10 @@ export default {
     margin: 0;
     text-align: center;
     touch-action: none;
+    font-family: Roboto, Tahoma, Helvetica;
+  }
+  .title {
+    font-family: Georgia, Baskerville;
   }
   .content {
     display: flex;
@@ -95,15 +99,14 @@ export default {
     }
   }
   h1 {
-    font-size: 30vw;
-    font-size: min(90vw, 90vh);
+    font-size: 25vw;
+    font-size: min(25vw, 25vh);
     margin: 0;
   }
   h2 {
-    font-size: 10vw;
-    font-size: min(10vw,10vh);
+    font-size: 8vw;
+    font-size: min(8vw,8vh);
     margin: 0;
-    text-transform: uppercase;
   }
   h3 {
     font-size: 5vw;
@@ -122,9 +125,10 @@ export default {
   }
   button {
     border-radius:1vw;
-    padding:1vw;
+    padding:1vw 3vw;
     margin: 1vw;
     background: rgba(255,255,255,0.5);
     color: darkslategrey;
+    text-transform: uppercase;
   }
 </style>

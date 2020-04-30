@@ -1,7 +1,7 @@
 <template>
   <div class="content" :class="{hide: hide, emerge: !hide}">
     <h2>Get ready to sing</h2>
-    <h2>{{title}}</h2>
+    <h2 class="title">{{title}}</h2>
   </div>
 </template>
 
