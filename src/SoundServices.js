@@ -67,7 +67,7 @@ export default class SoundServices {
 
   async listen() {
     const streamSource = audioCtx.createMediaStreamSource(this.stream);
-    const anal = new VolumeAnalyser(streamSource);
+    const anal = new VolumeAnalyser(streamSource, true);
     await anal.heardPromise;
     anal.disconnect();
   }
@@ -224,8 +224,9 @@ class VolumeAnalyser {
   heardResolver;
   heardPromise = new Promise((resolve) => this.heardResolver = resolve);
   processor;
+  calibrating = false;
 
-  constructor(sourceNode) {
+  constructor(sourceNode, calibrate) {
     this.anal = sourceNode.context.createAnalyser();
     this.anal.maxDecibels = VolumeAnalyser.maxDecibels;
     this.anal.minDecibels = VolumeAnalyser.minDecibels;
@@ -242,10 +243,11 @@ class VolumeAnalyser {
     
     this.amplitudeArray = new Uint8Array(this.anal.frequencyBinCount);
     this.processor.onaudioprocess = this.process.bind(this);
+    if(calibrate) this.calibrate();
   }
 
   process() {
-    if(this.processCycle < 10) {
+    if(this.processCycle < 10 && !this.calibrating) {
       this.processCycle++;
       return;
     }
@@ -253,9 +255,15 @@ class VolumeAnalyser {
     this.anal.getByteFrequencyData(this.amplitudeArray);
     let sampleTotal = (this.amplitudeArray[0]+this.amplitudeArray[1]);
     if(sampleTotal > 0) {
-      this.heardResolver();
       this.samplesTotal += sampleTotal;
       this.numberOfSamples += 2;
+      if(!this.calibrating) {
+        this.heardResolver();
+      } else {
+        this.calibrate();
+      }
+    } else {
+      this.sealCalibration();
     }
   }
 
@@ -270,6 +278,30 @@ class VolumeAnalyser {
 
   static getRange() {
     return this.maxDecibels - this.minDecibels;
+  }
+
+  sealCalibration() {
+    this.numberOfSamples++; //calibration samples only
+    if(this.numberOfSamples > 10)
+    {
+      this.anal.minDecibels += 2;
+      VolumeAnalyser.minDecibels = this.anal.minDecibels; 
+      this.calibrating = false;
+      this.numberOfSamples = 0; // no relevant samples (reset)
+      this.samplesTotal = 0; // no relevant sample total (reset)
+    }
+  }
+
+  calibrate() {
+    if(!this.calibrating) {
+      this.anal.minDecibels = -100;
+      this.calibrating = true;
+    } else {
+      this.anal.minDecibels++;
+      this.numberOfSamples = 0; // no relevant samples
+      this.samplesTotal = 0; // no relevant sample total
+      console.log(this.anal.minDecibels);
+    }
   }
 }
 VolumeAnalyser.maxDecibels = -30;
