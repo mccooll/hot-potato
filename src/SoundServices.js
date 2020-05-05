@@ -67,7 +67,7 @@ export default class SoundServices {
 
   async listen() {
     const streamSource = audioCtx.createMediaStreamSource(this.stream);
-    const anal = new VolumeAnalyser(streamSource, true);
+    const anal = new VolumeAnalyser(streamSource, false);
     await anal.heardPromise;
     anal.disconnect();
   }
