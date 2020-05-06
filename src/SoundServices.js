@@ -1,3 +1,5 @@
+import Meyda from 'meyda'
+
 const audioCtx = new AudioContext();
 
 export default class SoundServices {
@@ -11,12 +13,14 @@ export default class SoundServices {
   recordedBuffer;
   playSource;
   liveMixer;
+  arr;
 
   async fetchBaseAudio() {
     //await this.sleep()
     const response = await fetch('input');
     const arrayBuffer = await response.arrayBuffer();
     const array = new Float32Array(arrayBuffer);
+    this.arr = array;
     const originAudioBuffer = audioCtx.createBuffer(1,array.length,48000);
     originAudioBuffer.copyToChannel(array, 0);
     const trackSource = audioCtx.createBufferSource();
@@ -30,6 +34,24 @@ export default class SoundServices {
 
     trackSource.connect(audioCtx.destination);
     this.trackSource = trackSource;
+  }
+
+  extractBeatProfile() {
+    // var signal = (new Array(32).fill(0).map((element, index) => {
+    //   const remainder = index % 3;
+    //   if (remainder === 0) {
+    //     return 1;
+    //   } else if (remainder === 1) {
+    //     return 0;
+    //   }
+    //   return -1;
+    // }));
+    console.log(this.arr.slice(256, 512));
+    const buffer = this.arr.slice(240000, 240256);
+    const windowed = Meyda.windowing(buffer, "hamming");
+    Meyda.bufferSize = 256;
+    Meyda.sampleRate = 48000;
+    return Meyda.extract('zcr', windowed);
   }
 
   playBaseAudio() {
