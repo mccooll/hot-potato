@@ -46,12 +46,15 @@ export default class SoundServices {
     //   }
     //   return -1;
     // }));
-    console.log(this.arr.slice(256, 512));
-    const buffer = this.arr.slice(240000, 240256);
-    const windowed = Meyda.windowing(buffer, "hamming");
-    Meyda.bufferSize = 256;
+    Meyda.bufferSize = 2048;
     Meyda.sampleRate = 48000;
-    return Meyda.extract('zcr', windowed);
+    var pos = 48000*3;
+    while(pos < this.arr.length) {
+      const buffer = this.arr.slice(pos, pos+=2048);
+      if(buffer.length < 2048 || pos > 48000*4) break;
+      const windowed = Meyda.windowing(buffer, "hamming");
+      console.log(Meyda.extract(['zcr','amplitudeSpectrum'], windowed));
+    }
   }
 
   playBaseAudio() {
