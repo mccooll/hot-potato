@@ -78,9 +78,9 @@ export default class SoundServices {
     this.trackSource.addEventListener('ended', () => {
       this.mediaRecorder.stop();
       this.trackSource.disconnect();
-      //this.trackAnal.disconnect();
+      this.trackAnal.disconnect();
       this.streamSource.disconnect();
-      //this.anal.disconnect();
+      this.anal.disconnect();
     });
 
     this.streamSource = audioCtx.createMediaStreamSource(this.stream);
@@ -96,7 +96,7 @@ export default class SoundServices {
         let track = tracks[0];
         track.stop();
         this.stream.removeTrack(track);
-        that.liveMixer = new LiveMixer(await that.getRecordedBuffer(recordedChunks), that.trackSource.buffer, 3);
+        that.liveMixer = new LiveMixer(await that.getRecordedBuffer(recordedChunks), that.trackSource.buffer, that.trackAnal.getAverageVolume() - that.anal.getAverageVolume());
       } catch(e) {
         console.log(e);
       }
@@ -121,8 +121,8 @@ export default class SoundServices {
   }
 
   startRecording() {
-    //this.trackAnal = new VolumeAnalyser(this.trackSource);
-    //this.anal = new VolumeAnalyser(this.streamSource);
+    this.trackAnal = new VolumeAnalyser(this.trackSource);
+    this.anal = new VolumeAnalyser(this.streamSource);
     this.mediaRecorder.start();
     this.trackSource.start();
     var doneResolver;
@@ -144,7 +144,7 @@ export default class SoundServices {
     const recordedTrackSource = offlineAudioCtx.createBufferSource();
     recordedTrackSource.buffer = recordedBuffer;
     const gain = offlineAudioCtx.createGain();
-    gain.gain.value = 3;//this.trackAnal.getAverageVolume() - this.anal.getAverageVolume();
+    gain.gain.value = this.trackAnal.getAverageVolume() - this.anal.getAverageVolume();
     recordedTrackSource.connect(gain);
     gain.connect(offlineAudioCtx.destination);
 
@@ -310,7 +310,7 @@ class LiveMixer {
   ctx;
   killed;
 
-  constructor(recordedBuffer, baseBuffer) {
+  constructor(recordedBuffer, baseBuffer, gain) {
     this.killed = false;
     console.log((recordedBuffer.length - baseBuffer.length)/48000)
 
@@ -321,7 +321,7 @@ class LiveMixer {
     this.delayNode.connect(this.ctx.destination);
 
     this.gainNode = this.ctx.createGain();
-    this.gainNode.gain.value = 3;//gain;
+    this.gainNode.gain.value = gain;
     this.gainNode.connect(this.ctx.destination);
 
     this.setupSingleUseNodes(recordedBuffer, baseBuffer);
