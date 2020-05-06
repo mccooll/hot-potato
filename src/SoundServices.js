@@ -48,12 +48,13 @@ export default class SoundServices {
     // }));
     Meyda.bufferSize = 2048;
     Meyda.sampleRate = 48000;
-    var pos = 48000*3;
+    var pos = 0;
     while(pos < this.arr.length) {
       const buffer = this.arr.slice(pos, pos+=2048);
       if(buffer.length < 2048 || pos > 48000*4) break;
       const windowed = Meyda.windowing(buffer, "hamming");
-      console.log(Meyda.extract(['zcr','amplitudeSpectrum'], windowed));
+      const ext = Meyda.extract(['zcr','amplitudeSpectrum'], windowed);
+      console.log(ext.amplitudeSpectrum.indexOf(Math.max(...ext.amplitudeSpectrum)));
     }
   }
 
