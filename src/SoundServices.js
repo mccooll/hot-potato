@@ -16,24 +16,26 @@ export default class SoundServices {
   arr;
 
   async fetchBaseAudio() {
-    //await this.sleep()
-    const response = await fetch('input');
-    const arrayBuffer = await response.arrayBuffer();
-    const array = new Float32Array(arrayBuffer);
-    this.arr = array;
-    const originAudioBuffer = audioCtx.createBuffer(1,array.length,48000);
-    originAudioBuffer.copyToChannel(array, 0);
-    const trackSource = audioCtx.createBufferSource();
-    trackSource.buffer = originAudioBuffer;
-
-    // const response = await fetch('sample.mp3');
+    // await this.sleep()
+    // const response = await fetch('input');
     // const arrayBuffer = await response.arrayBuffer();
-    // const originAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    // const array = new Float32Array(arrayBuffer);
+    // this.arr = array;
+    // const originAudioBuffer = audioCtx.createBuffer(1,array.length,48000);
+    // originAudioBuffer.copyToChannel(array, 0);
     // const trackSource = audioCtx.createBufferSource();
     // trackSource.buffer = originAudioBuffer;
 
-    trackSource.connect(audioCtx.destination);
-    this.trackSource = trackSource;
+    const response = await fetch('Recording.m4a');
+    const arrayBuffer = await response.arrayBuffer();
+    const originAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    this.arr = originAudioBuffer.getChannelData(0);
+    console.log(this.arr)
+    const trackSource = audioCtx.createBufferSource();
+    trackSource.buffer = originAudioBuffer;
+
+    // trackSource.connect(audioCtx.destination);
+    // this.trackSource = trackSource;
   }
 
   extractBeatProfile() {
@@ -48,15 +50,77 @@ export default class SoundServices {
     // }));
     Meyda.bufferSize = 2048;
     Meyda.sampleRate = 48000;
-    var pos = 0;
-    while(pos < this.arr.length) {
+    var pos = 0//117120;
+    var beatPositions = [];
+    var previousMaxes = [];
+    var previousBeatBucket = 0;
+    while(pos < this.arr.length) {//149120) { //this.arr.length) {
       const buffer = this.arr.slice(pos, pos+=2048);
-      if(buffer.length < 2048 || pos > 48000*4) break;
+      if(buffer.length < 2048) break;
       const windowed = Meyda.windowing(buffer, "hamming");
-      const ext = Meyda.extract(['zcr','amplitudeSpectrum'], windowed);
-      console.log(ext.amplitudeSpectrum.indexOf(Math.max(...ext.amplitudeSpectrum)));
+      const ext = Meyda.extract(['spectralFlatness','rms','amplitudeSpectrum'], windowed);
+      //console.log('rms' + ext.rms)
+      //if(ext.rms>0.01)
+      console.log(ext.amplitudeSpectrum);
+      if(ext.spectralFlatness < 0.4)
+      {
+        const max = ext.amplitudeSpectrum.indexOf(Math.max(...ext.amplitudeSpectrum));
+        if(max!=previousBeatBucket) {
+          previousMaxes.push(max);
+          //console.log(previousMaxes.slice())
+          if(this.arePreviousMaxesConsistent(previousMaxes)) {
+            //console.log(max)
+            if(previousMaxes.length > 4) {
+              beatPositions.push(this.findBeatStart(pos,max,ext.amplitudeSpectrum[max]));
+              previousBeatBucket = max;
+            }
+          } else {
+            previousMaxes = [];
+          }
+        }
+      }
+      //if(max==24)
+        //console.log('pos'+pos);
+      //console.log(ext.amplitudeSpectrum[14])
     }
+    console.log(beatPositions)
   }
+
+  arePreviousMaxesConsistent(previousMaxes) {
+    let i=1;
+    while(i<previousMaxes.length) {
+      if(previousMaxes[0]!=previousMaxes[i++]) return false;
+    }
+    return true;
+  }
+
+  // findBeatStart(trackPosition) {
+  //   return trackPosition;
+  // }
+  findBeatStart(trackPosition, maxBucket) { //trackPosition, maxBucket, maxValue
+    Meyda.bufferSize = 2048;
+    Meyda.sampleRate = 48000;
+    var pos = trackPosition-2048*6;
+    var val = null;
+    const maxBack = 0.2*48000;
+    while(pos > maxBack) {
+      const buffer = this.arr.slice(pos-2048, pos);
+      if(buffer.length < 2048) return pos;
+      const windowed = Meyda.windowing(buffer, "hamming");
+      const ext = Meyda.extract(['amplitudeSpectrum'], windowed);
+      console.log('f'+ext.amplitudeSpectrum[maxBucket])
+      console.log('c'+val)
+      if(!val || ext.amplitudeSpectrum[maxBucket] < val) {
+        console.log('yep')
+        val = ext.amplitudeSpectrum[maxBucket];
+        pos-=2048;
+      } else {
+        return pos;
+      }
+    }
+    return pos;
+  }
+  //[94208, 133120, 256000, 319488, 344064, 407552, 534528]
 
   playBaseAudio() {
     if(this.trackSource) {
