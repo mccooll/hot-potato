@@ -16,6 +16,11 @@ export default class SoundServices {
   arr;
 
   async fetchBaseAudio() {
+    const workit = new Worker('./MeydaVolumeAnalysis.js');
+    workit.onmessage = function() {
+      console.log('Message received from worker');
+    }
+    workit.postMessage('Sending Message');
     // await this.sleep()
     const response = await fetch('mic');
     const arrayBuffer = await response.arrayBuffer();
