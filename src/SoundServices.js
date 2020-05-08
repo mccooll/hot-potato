@@ -16,11 +16,6 @@ export default class SoundServices {
   arr;
 
   async fetchBaseAudio() {
-    const workit = new Worker('./MeydaVolumeAnalysis.js');
-    workit.onmessage = function() {
-      console.log('Message received from worker');
-    }
-    workit.postMessage('Sending Message');
     // await this.sleep()
     const response = await fetch('mic');
     const arrayBuffer = await response.arrayBuffer();
@@ -31,6 +26,12 @@ export default class SoundServices {
     const trackSource = audioCtx.createBufferSource();
     trackSource.buffer = originAudioBuffer;
     window.ssss = this;
+
+    const workit = new Worker('./MeydaVolumeAnalysis.js');
+    workit.onmessage = function() {
+      console.log('Message received from worker');
+    }
+    workit.postMessage(this.arr);
 
     // const response = await fetch('Recording.m4a');
     // const arrayBuffer = await response.arrayBuffer();
@@ -173,9 +174,21 @@ export default class SoundServices {
 
   async listen() {
     const streamSource = audioCtx.createMediaStreamSource(this.stream);
-    const anal = new VolumeAnalyser(streamSource, false);
-    await anal.heardPromise;
-    anal.disconnect();
+    var heardResolver;
+    var heardPromise = new Promise((resolve) => heardResolver = resolve);
+    const analyzer = Meyda.createMeydaAnalyzer({
+      "audioContext": audioCtx,
+      "source": streamSource,
+      "bufferSize": 16384,
+      "featureExtractors": ["spectralFlatness"],
+      "callback": features => {
+        console.log(features)
+        if(features.spectralFlatness < 0.35) heardResolver();
+      }
+    });
+    analyzer.start();
+    await heardPromise;
+    analyzer.stop();
   }
 
 
