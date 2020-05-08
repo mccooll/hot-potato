@@ -17,25 +17,26 @@ export default class SoundServices {
 
   async fetchBaseAudio() {
     // await this.sleep()
-    // const response = await fetch('input');
+    const response = await fetch('mic');
+    const arrayBuffer = await response.arrayBuffer();
+    const array = new Float32Array(arrayBuffer);
+    this.arr = array;
+    const originAudioBuffer = audioCtx.createBuffer(1,array.length,48000);
+    originAudioBuffer.copyToChannel(array, 0);
+    const trackSource = audioCtx.createBufferSource();
+    trackSource.buffer = originAudioBuffer;
+    window.ssss = this;
+
+    // const response = await fetch('Recording.m4a');
     // const arrayBuffer = await response.arrayBuffer();
-    // const array = new Float32Array(arrayBuffer);
-    // this.arr = array;
-    // const originAudioBuffer = audioCtx.createBuffer(1,array.length,48000);
-    // originAudioBuffer.copyToChannel(array, 0);
+    // const originAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    // this.arr = originAudioBuffer.getChannelData(0);
+    // console.log(this.arr)
     // const trackSource = audioCtx.createBufferSource();
     // trackSource.buffer = originAudioBuffer;
 
-    const response = await fetch('Recording.m4a');
-    const arrayBuffer = await response.arrayBuffer();
-    const originAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-    this.arr = originAudioBuffer.getChannelData(0);
-    console.log(this.arr)
-    const trackSource = audioCtx.createBufferSource();
-    trackSource.buffer = originAudioBuffer;
-
-    // trackSource.connect(audioCtx.destination);
-    // this.trackSource = trackSource;
+    trackSource.connect(audioCtx.destination);
+    this.trackSource = trackSource;
   }
 
   extractBeatProfile() {
@@ -58,10 +59,10 @@ export default class SoundServices {
       const buffer = this.arr.slice(pos, pos+=2048);
       if(buffer.length < 2048) break;
       const windowed = Meyda.windowing(buffer, "hamming");
-      const ext = Meyda.extract(['spectralFlatness','rms','amplitudeSpectrum'], windowed);
+      const ext = Meyda.extract(['chroma','spectralFlatness','rms','amplitudeSpectrum'], windowed);
       //console.log('rms' + ext.rms)
       //if(ext.rms>0.01)
-      console.log(ext.amplitudeSpectrum);
+      //console.log(ext.amplitudeSpectrum);
       if(ext.spectralFlatness < 0.4)
       {
         const max = ext.amplitudeSpectrum.indexOf(Math.max(...ext.amplitudeSpectrum));
@@ -71,8 +72,11 @@ export default class SoundServices {
           if(this.arePreviousMaxesConsistent(previousMaxes)) {
             //console.log(max)
             if(previousMaxes.length > 4) {
-              beatPositions.push(this.findBeatStart(pos,max,ext.amplitudeSpectrum[max]));
+              const s = this.findBeatStart(pos,max,ext.amplitudeSpectrum[max]);
+              const n = this.noteFromChromaIndex(ext.chroma.indexOf(Math.max(...ext.chroma)));
+              beatPositions.push( {s,n} ); //, 
               previousBeatBucket = max;
+              console.log(ext.chroma)
             }
           } else {
             previousMaxes = [];
@@ -84,6 +88,13 @@ export default class SoundServices {
       //console.log(ext.amplitudeSpectrum[14])
     }
     console.log(beatPositions)
+  }
+  //mic[22528, 69632, 139264, 176128, 239616, 335872, 434176, 497664, 522240, 548864, 561152, 630784, 720896, 743424, 759808, 784384, 819200, 874496, 911360, 966656, 983040, 1005568, 1114112, 1163264, 1245184, 1271808, 1300480, 1460224]
+  //base[49152, 129024, 180224, 239616, 258048, 276480, 319488, 436224, 483328, 548864, 624640, 686080, 710656, 757760, 804864, 884736, 901120, 946176, 995328, 1157120, 1251328, 1261568, 1296384, 1314816, 1378304, 1396736]
+
+  noteFromChromaIndex(i) {
+    const notes = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+    return notes[i];
   }
 
   arePreviousMaxesConsistent(previousMaxes) {
@@ -199,6 +210,7 @@ export default class SoundServices {
   }
 
   async getRecordedBuffer(chunks) {
+    window.chhunks = chunks;
     const chunksBlob = new Blob(chunks);
     var arrayBuffer;
     try {
