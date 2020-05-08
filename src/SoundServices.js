@@ -176,18 +176,22 @@ export default class SoundServices {
     const streamSource = audioCtx.createMediaStreamSource(this.stream);
     var heardResolver;
     var heardPromise = new Promise((resolve) => heardResolver = resolve);
+    var rmss = [];
     const analyzer = Meyda.createMeydaAnalyzer({
       "audioContext": audioCtx,
       "source": streamSource,
       "bufferSize": 16384,
-      "featureExtractors": ["spectralFlatness"],
+      "featureExtractors": ["spectralFlatness", "buffer", "rms"],
       "callback": features => {
-        console.log(features)
+        rmss.push(features.rms);
         if(features.spectralFlatness < 0.35) heardResolver();
       }
     });
     analyzer.start();
     await heardPromise;
+    rmss.pop(); rmss.pop();
+    const quietRMS = rmss.reduce((s,v)=> s + v)/rmss.length;
+    console.log(quietRMS);
     analyzer.stop();
   }
 
