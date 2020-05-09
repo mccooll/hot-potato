@@ -21,6 +21,9 @@ export default class SoundServices {
     const arrayBuffer = await response.arrayBuffer();
     const array = new Float32Array(arrayBuffer);
     this.arr = array;
+    console.log(Date.now())
+    console.log(this.getVolume());
+    console.log(Date.now())
     const originAudioBuffer = audioCtx.createBuffer(1,array.length,48000);
     originAudioBuffer.copyToChannel(array, 0);
     const trackSource = audioCtx.createBufferSource();
@@ -43,6 +46,10 @@ export default class SoundServices {
 
     trackSource.connect(audioCtx.destination);
     this.trackSource = trackSource;
+  }
+
+  getVolume() {
+    return Math.sqrt(this.arr.reduce((s,v)=> s + v*v)/this.arr.length);
   }
 
   extractBeatProfile() {
@@ -82,7 +89,7 @@ export default class SoundServices {
               const n = this.noteFromChromaIndex(ext.chroma.indexOf(Math.max(...ext.chroma)));
               beatPositions.push( {s,n} ); //, 
               previousBeatBucket = max;
-              console.log(ext.chroma)
+              //console.log(ext.chroma)
             }
           } else {
             previousMaxes = [];
@@ -93,7 +100,7 @@ export default class SoundServices {
         //console.log('pos'+pos);
       //console.log(ext.amplitudeSpectrum[14])
     }
-    console.log(beatPositions)
+    //console.log(beatPositions)
   }
   //mic[22528, 69632, 139264, 176128, 239616, 335872, 434176, 497664, 522240, 548864, 561152, 630784, 720896, 743424, 759808, 784384, 819200, 874496, 911360, 966656, 983040, 1005568, 1114112, 1163264, 1245184, 1271808, 1300480, 1460224]
   //base[49152, 129024, 180224, 239616, 258048, 276480, 319488, 436224, 483328, 548864, 624640, 686080, 710656, 757760, 804864, 884736, 901120, 946176, 995328, 1157120, 1251328, 1261568, 1296384, 1314816, 1378304, 1396736]
@@ -125,10 +132,10 @@ export default class SoundServices {
       if(buffer.length < 2048) return pos;
       const windowed = Meyda.windowing(buffer, "hamming");
       const ext = Meyda.extract(['amplitudeSpectrum'], windowed);
-      console.log('f'+ext.amplitudeSpectrum[maxBucket])
-      console.log('c'+val)
+      //console.log('f'+ext.amplitudeSpectrum[maxBucket])
+      //console.log('c'+val)
       if(!val || ext.amplitudeSpectrum[maxBucket] < val) {
-        console.log('yep')
+        //console.log('yep')
         val = ext.amplitudeSpectrum[maxBucket];
         pos-=2048;
       } else {
@@ -201,9 +208,7 @@ export default class SoundServices {
     this.trackSource.addEventListener('ended', () => {
       this.mediaRecorder.stop();
       this.trackSource.disconnect();
-      this.trackAnal.disconnect();
       this.streamSource.disconnect();
-      this.anal.disconnect();
     });
 
     this.streamSource = audioCtx.createMediaStreamSource(this.stream);
@@ -245,8 +250,6 @@ export default class SoundServices {
   }
 
   startRecording() {
-    this.trackAnal = new VolumeAnalyser(this.trackSource);
-    this.anal = new VolumeAnalyser(this.streamSource);
     this.mediaRecorder.start();
     this.trackSource.start();
     var doneResolver;
@@ -268,7 +271,7 @@ export default class SoundServices {
     const recordedTrackSource = offlineAudioCtx.createBufferSource();
     recordedTrackSource.buffer = recordedBuffer;
     const gain = offlineAudioCtx.createGain();
-    gain.gain.value = this.trackAnal.getAverageVolume() - this.anal.getAverageVolume();
+    gain.gain.value = 2;
     recordedTrackSource.connect(gain);
     gain.connect(offlineAudioCtx.destination);
 
