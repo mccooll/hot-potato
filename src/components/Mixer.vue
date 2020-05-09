@@ -14,18 +14,19 @@
 </template>
 
 <script>
-//import SoundServicesTestRig from '../SoundServicesTestRig'
+import SoundServicesTestRig from '../SoundServicesTestRig'
 export default {
   data: () => ({
     time: 0
   }),
-  props: ['soundServices'],
+  props: [],
   mounted: async function() {
-    //this.soundServices = new SoundServicesTestRig();
+    this.soundServices = new SoundServicesTestRig();
     this.$emit('bubble', 2);
-    //await this.soundServices.setMockTracks();
-    //this.soundServices.liveMixMocks();
+    await this.soundServices.setMockTracks();
+    this.soundServices.liveMixMocks();
     if(this.soundServices.liveMixer) {
+      this.time = Math.ceil(this.soundServices.liveMixer.delay*1000);
       this.setTime();
     }
   },

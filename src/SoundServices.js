@@ -243,6 +243,8 @@ export class LiveMixer {
     this.ctx = new AudioContext();    
     
     this.delay = 0;
+    this.delay = baseBuffer.duration - recordedBuffer.duration + this.ctx.baseLatency;
+    if(!(this.delay > 0)) this.delay = 0; 
     this.delayNode = this.ctx.createDelay(1);
     this.delayNode.connect(this.ctx.destination);
 
