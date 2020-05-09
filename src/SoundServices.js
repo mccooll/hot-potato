@@ -10,15 +10,18 @@ export default class SoundServices {
     volume: null,
     buffer: null
   }
-  trackSource;
+  quietRMS;
   stream;
-  streamSource;
   mediaRecorder;
   recordedBuffer;
   playSource;
   liveMixer;
   arr;
   audioCtx = new AudioContext();
+
+  constructor() {
+    return
+  }
 
   getBufferFromRaw(arrayBuffer) {
     const array = new Float32Array(arrayBuffer);
@@ -39,35 +42,38 @@ export default class SoundServices {
   }
 
   async fetchBaseAudio() {
-    const arrayBuffer = await this.fetchArrayBuffer('output');
-    const baseTrack.buffer = this.getBufferFromRaw(arrayBuffer);
-    const trackSource = this.audioCtx.createBufferSource();
-    trackSource.buffer = baseTrack.buffer;
-
-    trackSource.connect(this.audioCtx.destination);
-    this.trackSource = trackSource;
+    const arrayBuffer = await this.fetchArrayBuffer('input');
+    this.baseTrack.buffer = this.getBufferFromRaw(arrayBuffer);
+    this.baseTrack.volume = this.getVolume(this.baseTrack.buffer.getChannelData(0));
   }
 
   getVolume(pcmArray) {
     return Math.sqrt(pcmArray.reduce((s,v)=> s + v*v)/pcmArray.length);
   }
 
-  playBaseAudio() {
-    if(this.trackSource) {
-      if(this.playSource) this.playSource.disconnect();
-      this.playSource = this.audioCtx.createBufferSource();
-      this.playSource.buffer = this.trackSource.buffer;
-      this.playSource.loop = true;
-      this.playSource.connect(this.audioCtx.destination);
-      this.playSource.start();
+  getGain(linear1, linear2) {
+    return linear2/linear1;
+  }
+
+  bufferToSource(buffer, loop) {
+    let source = this.audioCtx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = loop;
+    return source;
+  }
+
+  playBuffer(buffer, loop) {
+    const source = this.bufferToSource(buffer, loop);
+    source.connect(this.audioCtx.destination);
+    source.start();
+    return () => {
+      source.disconnect();
+      source.stop();
     }
   }
 
-  stopPlayingBaseAudio() {
-    if(this.playSource) {
-      this.playSource.disconnect();
-      this.playSource = null;
-    }
+  playBaseAudio() {
+    return this.playBuffer(this.baseTrack.buffer, true);
   }
 
   async requestMic() {
@@ -77,12 +83,6 @@ export default class SoundServices {
       channelCount: 1
     }, video: false })
     return this.stream;
-  }
-
-  micDiagnostic() {
-    let tracks = this.stream.getAudioTracks();
-    let track = tracks[0];
-    console.log(track.getSettings());
   }
 
   async listen() {
@@ -103,47 +103,53 @@ export default class SoundServices {
     analyzer.start();
     await heardPromise;
     rmss.pop(); rmss.pop();
-    const quietRMS = rmss.reduce((s,v)=> s + v)/rmss.length;
-    console.log(quietRMS);
+    this.quietRMS = rmss.reduce((s,v)=> s + v)/rmss.length;
     analyzer.stop();
   }
 
+  async record() {
+    const baseTrackSource = this.bufferToSource(this.baseTrack.buffer);
+    baseTrackSource.connect(this.audioCtx.destination);
+    const streamSource = this.audioCtx.createMediaStreamSource(this.stream);
+    const recordedChunks = [];
+    const mediaRecorder = new MediaRecorder(this.stream, { mimeType: 'audio/webm' });
 
-
-  async setupRecording() {
-    this.trackSource.addEventListener('ended', () => {
-      this.mediaRecorder.stop();
-      this.trackSource.disconnect();
-      this.streamSource.disconnect();
+    baseTrackSource.addEventListener('ended', () => {
+      mediaRecorder.stop();
+      baseTrackSource.disconnect();
+      streamSource.disconnect();
     });
 
-    this.streamSource = this.audioCtx.createMediaStreamSource(this.stream);
-
-    const options = {mimeType: 'audio/webm'};
-    const recordedChunks = [];
-    this.mediaRecorder = new MediaRecorder(this.stream, options);
-
     let that = this;
-    this.mediaRecorder.addEventListener('stop', async function() {
+    mediaRecorder.addEventListener('stop', async function() {
       try {
-        let tracks = this.stream.getAudioTracks();
+        let tracks = that.stream.getAudioTracks();
         let track = tracks[0];
         track.stop();
-        this.stream.removeTrack(track);
-        that.liveMixer = new LiveMixer(await that.getRecordedBuffer(recordedChunks), that.trackSource.buffer, 2);
+        that.stream.removeTrack(track);
+        const buffer = await that.getRecordedBuffer(recordedChunks);
+        that.micTrack.buffer = buffer;
+        that.micTrack.volume = that.getVolume(that.micTrack.buffer.getChannelData(0));
+        that.liveMixer = new LiveMixer(that.micTrack.buffer, that.baseTrack.buffer, that.getGain(that.micTrack.volume, that.baseTrack.volume));
       } catch(e) {
         console.log(e);
       }
     });
-    this.mediaRecorder.addEventListener('dataavailable', async function(e) { //assuming this event only happens after recording 
+    mediaRecorder.addEventListener('dataavailable', async function(e) { //assuming this event only happens after recording 
       if (e.data.size > 0) {
         recordedChunks.push(e.data);
       }
     });
+
+    mediaRecorder.start();
+    baseTrackSource.start();
+    var doneResolver;
+    const donePromise = new Promise((resolve) => doneResolver = resolve);
+    baseTrackSource.addEventListener('ended', () => doneResolver() )
+    return donePromise;
   }
 
   async getRecordedBuffer(chunks) {
-    window.chhunks = chunks;
     const chunksBlob = new Blob(chunks);
     var arrayBuffer;
     try {
@@ -153,15 +159,6 @@ export default class SoundServices {
     }
     const recordedAudioBuffer = await this.audioCtx.decodeAudioData(arrayBuffer);
     return recordedAudioBuffer;
-  }
-
-  startRecording() {
-    this.mediaRecorder.start();
-    this.trackSource.start();
-    var doneResolver;
-    const donePromise = new Promise((resolve) => doneResolver = resolve);
-    this.trackSource.addEventListener('ended', () => doneResolver() )
-    return donePromise;
   }
 
   async mix(recordedBuffer, trackBuffer) {
@@ -177,7 +174,7 @@ export default class SoundServices {
     const recordedTrackSource = offlineAudioCtx.createBufferSource();
     recordedTrackSource.buffer = recordedBuffer;
     const gain = offlineAudioCtx.createGain();
-    gain.gain.value = 2;
+    gain.gain.value = this.getGain(this.micTrack.volume, this.baseTrack.volume);
     recordedTrackSource.connect(gain);
     gain.connect(offlineAudioCtx.destination);
 
@@ -230,7 +227,7 @@ export default class SoundServices {
   
 }
 
-class LiveMixer {
+export class LiveMixer {
   delay;
   delayNode;
   gainNode;

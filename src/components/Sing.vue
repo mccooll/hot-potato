@@ -35,7 +35,7 @@ Was blind but now I see",
       this.scrollDistance = diff > 0 ? -diff : 0;
     },
     setTrackSeconds: function() {
-      var seconds = this.soundServices.trackSource.buffer.duration - 10;
+      var seconds = this.soundServices.baseTrack.buffer.duration - 10;
       this.trackSeconds = seconds > 0 ? seconds : 0;
     },
     countdown: function() {
@@ -53,12 +53,10 @@ Was blind but now I see",
           this.countdown();
           if(!this.recording) {
             this.recording = true;
-            this.soundServices.setupRecording().then(() => {
-              this.soundServices.startRecording().then(() => {
-                this.$router.push('6');
-                clearTimeout(ref1);
-                clearTimeout(ref2);
-              });
+            this.soundServices.record().then(() => {
+              this.$router.push('6');
+              clearTimeout(ref1);
+              clearTimeout(ref2);
             });
           }
         }
