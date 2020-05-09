@@ -2,11 +2,17 @@ import Meyda from 'meyda'
 
 export default class SoundServices {
 
+  baseTrack = {
+    volume: null,
+    buffer: null
+  }
+  micTrack = {
+    volume: null,
+    buffer: null
+  }
   trackSource;
-  trackAnal;
   stream;
   streamSource;
-  anal;
   mediaRecorder;
   recordedBuffer;
   playSource;
@@ -14,41 +20,42 @@ export default class SoundServices {
   arr;
   audioCtx = new AudioContext();
 
-  async fetchBaseAudio() {
-    // await this.sleep()
-    const response = await fetch('mic');
-    const arrayBuffer = await response.arrayBuffer();
+  getBufferFromRaw(arrayBuffer) {
     const array = new Float32Array(arrayBuffer);
-    this.arr = array;
-    console.log(Date.now())
-    console.log(this.getVolume());
-    console.log(Date.now())
-    const originAudioBuffer = this.audioCtx.createBuffer(1,array.length,48000);
-    originAudioBuffer.copyToChannel(array, 0);
+    const buffer = this.audioCtx.createBuffer(1,array.length,48000);
+    buffer.copyToChannel(array, 0);
+    return buffer;
+  }
+
+  async getBufferFromEncoded(arrayBuffer) {
+    const buffer = await this.audioCtx.decodeAudioData(arrayBuffer);
+    return buffer;
+  }
+
+  async fetchArrayBuffer(url) {
+    const response = await fetch(url);
+    const arrayBuffer = await response.arrayBuffer();
+    return arrayBuffer;
+  }
+
+  async fetchBaseAudio() {
+    const arrayBuffer = await this.fetchArrayBuffer('output');
+    const baseTrack.buffer = this.getBufferFromRaw(arrayBuffer);
     const trackSource = this.audioCtx.createBufferSource();
-    trackSource.buffer = originAudioBuffer;
-    window.ssss = this;
+    trackSource.buffer = baseTrack.buffer;
 
     const workit = new Worker('./MeydaVolumeAnalysis.js');
     workit.onmessage = function() {
       console.log('Message received from worker');
     }
-    workit.postMessage(this.arr);
-
-    // const response = await fetch('Recording.m4a');
-    // const arrayBuffer = await response.arrayBuffer();
-    // const originAudioBuffer = await this.audioCtx.decodeAudioData(arrayBuffer);
-    // this.arr = originAudioBuffer.getChannelData(0);
-    // console.log(this.arr)
-    // const trackSource = this.audioCtx.createBufferSource();
-    // trackSource.buffer = originAudioBuffer;
+    workit.postMessage(this.baseTrack.buffer.getChannelData(0));
 
     trackSource.connect(this.audioCtx.destination);
     this.trackSource = trackSource;
   }
 
-  getVolume() {
-    return Math.sqrt(this.arr.reduce((s,v)=> s + v*v)/this.arr.length);
+  getVolume(pcmArray) {
+    return Math.sqrt(pcmArray.reduce((s,v)=> s + v*v)/pcmArray.length);
   }
 
   playBaseAudio() {
@@ -226,12 +233,7 @@ export default class SoundServices {
     return fetch('output', {method: 'post', body: mixDataBlob});
   }
 
-  timeout(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-  async sleep() {
-      await this.timeout(10000);
-  }
+  
 }
 
 class LiveMixer {
