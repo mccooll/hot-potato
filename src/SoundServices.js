@@ -274,6 +274,7 @@ export class LiveMixer {
   kill() {
     this.killed = true;
     this.stop();
+    this.ctx.close();
   }
 
   stop() {
