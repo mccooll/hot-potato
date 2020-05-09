@@ -16,9 +16,6 @@ export default {
 
     if(!this.badBroswer()) {
       let promise = this.soundServices.fetchBaseAudio();
-      promise.then(() => {
-        console.log(this.soundServices.extractBeatProfile());
-      })
       setTimeout(() => this.hide = false );
       setTimeout(() => {
         this.hide = true;
