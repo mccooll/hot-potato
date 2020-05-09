@@ -130,7 +130,7 @@ export default class SoundServices {
         let track = tracks[0];
         track.stop();
         this.stream.removeTrack(track);
-        that.liveMixer = new LiveMixer(await that.getRecordedBuffer(recordedChunks), that.trackSource.buffer, that.trackAnal.getAverageVolume() - that.anal.getAverageVolume());
+        that.liveMixer = new LiveMixer(await that.getRecordedBuffer(recordedChunks), that.trackSource.buffer, 2);
       } catch(e) {
         console.log(e);
       }
