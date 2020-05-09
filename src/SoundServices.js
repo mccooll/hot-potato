@@ -221,20 +221,6 @@ export default class SoundServices {
     mediaRecorder.start();
   }
 
-  // playMixing(buffers) {
-  //   let time = audioCtx.currentTime;
-  //   buffers.forEach(buffer => {
-  //     let source = audioCtx.createBufferSource();
-  //     source.buffer = buffer;
-  //     source.connect(audioCtx.destination);
-  //     source.start(time + 1);
-  //   })
-  // }
-
-  // delayRecordingPlaying(source, delay) {
-  //   source.
-  // }
-
   async saveMixed(audioBuffer) {
     const mixRawData = audioBuffer.getChannelData(0);
     const mixDataBlob = new Blob([mixRawData]);
