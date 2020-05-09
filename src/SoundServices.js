@@ -1,7 +1,5 @@
 import Meyda from 'meyda'
 
-const audioCtx = new AudioContext();
-
 export default class SoundServices {
 
   trackSource;
@@ -14,6 +12,7 @@ export default class SoundServices {
   playSource;
   liveMixer;
   arr;
+  audioCtx = new AudioContext();
 
   async fetchBaseAudio() {
     // await this.sleep()
@@ -24,9 +23,9 @@ export default class SoundServices {
     console.log(Date.now())
     console.log(this.getVolume());
     console.log(Date.now())
-    const originAudioBuffer = audioCtx.createBuffer(1,array.length,48000);
+    const originAudioBuffer = this.audioCtx.createBuffer(1,array.length,48000);
     originAudioBuffer.copyToChannel(array, 0);
-    const trackSource = audioCtx.createBufferSource();
+    const trackSource = this.audioCtx.createBufferSource();
     trackSource.buffer = originAudioBuffer;
     window.ssss = this;
 
@@ -38,13 +37,13 @@ export default class SoundServices {
 
     // const response = await fetch('Recording.m4a');
     // const arrayBuffer = await response.arrayBuffer();
-    // const originAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    // const originAudioBuffer = await this.audioCtx.decodeAudioData(arrayBuffer);
     // this.arr = originAudioBuffer.getChannelData(0);
     // console.log(this.arr)
-    // const trackSource = audioCtx.createBufferSource();
+    // const trackSource = this.audioCtx.createBufferSource();
     // trackSource.buffer = originAudioBuffer;
 
-    trackSource.connect(audioCtx.destination);
+    trackSource.connect(this.audioCtx.destination);
     this.trackSource = trackSource;
   }
 
@@ -55,10 +54,10 @@ export default class SoundServices {
   playBaseAudio() {
     if(this.trackSource) {
       if(this.playSource) this.playSource.disconnect();
-      this.playSource = audioCtx.createBufferSource();
+      this.playSource = this.audioCtx.createBufferSource();
       this.playSource.buffer = this.trackSource.buffer;
       this.playSource.loop = true;
-      this.playSource.connect(audioCtx.destination);
+      this.playSource.connect(this.audioCtx.destination);
       this.playSource.start();
     }
   }
@@ -86,12 +85,12 @@ export default class SoundServices {
   }
 
   async listen() {
-    const streamSource = audioCtx.createMediaStreamSource(this.stream);
+    const streamSource = this.audioCtx.createMediaStreamSource(this.stream);
     var heardResolver;
     var heardPromise = new Promise((resolve) => heardResolver = resolve);
     var rmss = [];
     const analyzer = Meyda.createMeydaAnalyzer({
-      "audioContext": audioCtx,
+      "audioContext": this.audioCtx,
       "source": streamSource,
       "bufferSize": 16384,
       "featureExtractors": ["spectralFlatness", "buffer", "rms"],
@@ -117,7 +116,7 @@ export default class SoundServices {
       this.streamSource.disconnect();
     });
 
-    this.streamSource = audioCtx.createMediaStreamSource(this.stream);
+    this.streamSource = this.audioCtx.createMediaStreamSource(this.stream);
 
     const options = {mimeType: 'audio/webm'};
     const recordedChunks = [];
@@ -151,7 +150,7 @@ export default class SoundServices {
     } catch {
       arrayBuffer = await new Response(chunksBlob).arrayBuffer();
     }
-    const recordedAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    const recordedAudioBuffer = await this.audioCtx.decodeAudioData(arrayBuffer);
     return recordedAudioBuffer;
   }
 
@@ -188,15 +187,15 @@ export default class SoundServices {
   }
 
   playMixed(audioBuffer) {
-    var mix = audioCtx.createBufferSource();
+    var mix = this.audioCtx.createBufferSource();
     mix.buffer = audioBuffer;
-    mix.connect(audioCtx.destination);
+    mix.connect(this.audioCtx.destination);
     this.setupMixedDownload(mix);
     mix.start();
   }
 
   setupMixedDownload(mixNode) {
-    var stream = audioCtx.createMediaStreamDestination();
+    var stream = this.audioCtx.createMediaStreamDestination();
     var mediaRecorder = new MediaRecorder(stream.stream);
     mixNode.connect(stream);
 
