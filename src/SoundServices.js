@@ -44,12 +44,6 @@ export default class SoundServices {
     const trackSource = this.audioCtx.createBufferSource();
     trackSource.buffer = baseTrack.buffer;
 
-    const workit = new Worker('./MeydaVolumeAnalysis.js');
-    workit.onmessage = function() {
-      console.log('Message received from worker');
-    }
-    workit.postMessage(this.baseTrack.buffer.getChannelData(0));
-
     trackSource.connect(this.audioCtx.destination);
     this.trackSource = trackSource;
   }
