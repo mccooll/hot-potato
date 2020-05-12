@@ -19,8 +19,7 @@ export default {
     hide: true,
     volumeMsg: 'Turn up your volume.',
     loadingMsg: 'Loading our song...',
-    msg: '',
-    stopCallback: () => { return; }
+    msg: ''
   }),
   props: ['readyPromise','soundServices'],
   mounted: function() {
@@ -34,13 +33,13 @@ export default {
   methods: {
     yes: function() {
       if(!this.loading) {
-        //this.soundServices.stopPlayingBaseAudio();
         this.stopCallback();
         this.$router.push('3');
       }
     },
     no: function() {
-      this.soundServices.playBaseAudio();
+      this.stopCallback();
+      this.stopCallback = this.soundServices.playBaseAudio();
     },
     rotateMessage:  function() {
       this.hide = false;
