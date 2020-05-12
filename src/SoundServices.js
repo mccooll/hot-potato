@@ -45,6 +45,7 @@ export default class SoundServices {
     const arrayBuffer = await this.fetchArrayBuffer('input');
     this.baseTrack.buffer = this.getBufferFromRaw(arrayBuffer);
     this.baseTrack.volume = this.getVolume(this.baseTrack.buffer.getChannelData(0));
+    console.log("track length" + this.baseTrack.buffer.duration)
   }
 
   getVolume(pcmArray) {
@@ -110,14 +111,13 @@ export default class SoundServices {
   async record() {
     const baseTrackSource = this.bufferToSource(this.baseTrack.buffer);
     baseTrackSource.connect(this.audioCtx.destination);
-    const streamSource = this.audioCtx.createMediaStreamSource(this.stream);
     const recordedChunks = [];
     const mediaRecorder = new MediaRecorder(this.stream, { mimeType: 'audio/webm' });
 
     baseTrackSource.addEventListener('ended', () => {
       mediaRecorder.stop();
+      console.log('track ended and recording stopped' + this.audioCtx.currentTime);
       baseTrackSource.disconnect();
-      streamSource.disconnect();
     });
 
     let that = this;
@@ -141,8 +141,13 @@ export default class SoundServices {
       }
     });
 
+    
+    mediaRecorder.addEventListener('start', () => {
+      baseTrackSource.start();
+      console.log("start track" + this.audioCtx.currentTime);
+    });
+    console.log("start recorder" + this.audioCtx.currentTime);
     mediaRecorder.start();
-    baseTrackSource.start();
     var doneResolver;
     const donePromise = new Promise((resolve) => doneResolver = resolve);
     baseTrackSource.addEventListener('ended', () => doneResolver() )
@@ -238,7 +243,7 @@ export class LiveMixer {
 
   constructor(recordedBuffer, baseBuffer, gain) {
     this.killed = false;
-    console.log((recordedBuffer.length - baseBuffer.length)/48000)
+    console.log("additional length of recording" + (recordedBuffer.length - baseBuffer.length)/48000)
 
     this.ctx = new AudioContext();    
     
