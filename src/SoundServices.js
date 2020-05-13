@@ -98,7 +98,10 @@ export default class SoundServices {
       "featureExtractors": ["spectralFlatness", "buffer", "rms"],
       "callback": features => {
         rmss.push(features.rms);
-        if(features.spectralFlatness < 0.35) heardResolver();
+        if(features.spectralFlatness < 0.35 && rmss.length > 2) {
+          console.log(features.spectralFlatness);
+          heardResolver();
+        } 
       }
     });
     analyzer.start();
