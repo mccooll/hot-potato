@@ -110,10 +110,29 @@ export default class SoundServices {
   }
 
   async record() {
+    const merger = this.audioCtx.createChannelMerger(2);
+    const mixedStream = this.audioCtx.createMediaStreamDestination();
+    
+    const baseTrackSplitter = this.audioCtx.createChannelSplitter(1);
     const baseTrackSource = this.bufferToSource(this.baseTrack.buffer);
     baseTrackSource.connect(this.audioCtx.destination);
-    let recordedChunks = [];
-    const mediaRecorder = new MediaRecorder(this.stream, { mimeType: 'audio/webm' });
+    baseTrackSource.connect(baseTrackSplitter);
+    baseTrackSplitter.connect(merger,0,0)
+
+    const micSplitter = this.audioCtx.createChannelSplitter(1);
+    const micStream = this.audioCtx.createMediaStreamSource(this.stream);
+    var gainNode = this.audioCtx.createGain();
+    micStream.connect(gainNode);
+    gainNode.gain.value = 4;
+    gainNode.connect(micSplitter);
+    micSplitter.connect(merger, 0, 1);
+
+    merger.connect(mixedStream);
+
+    const mediaRecorder = new MediaRecorder(mixedStream.stream, { mimeType: 'audio/webm' });
+
+    baseTrackSource.start();
+    mediaRecorder.start();
 
     baseTrackSource.addEventListener('ended', () => {
       mediaRecorder.stop();
@@ -121,42 +140,21 @@ export default class SoundServices {
       baseTrackSource.disconnect();
     });
 
-    let that = this;
-    mediaRecorder.addEventListener('stop', async function() {
-      try {
-        let tracks = that.stream.getAudioTracks();
-        let track = tracks[0];
-        track.stop();
-        that.stream.removeTrack(track);
-        const buffer = await that.getRecordedBuffer(recordedChunks);
-        that.micTrack.buffer = buffer;
-        that.micTrack.volume = that.getVolume(that.micTrack.buffer.getChannelData(0));
-        that.liveMixer = new LiveMixer(that.micTrack.buffer, that.baseTrack.buffer, that.getGain(that.micTrack.volume, that.baseTrack.volume));
-      } catch(e) {
-        console.log(e);
-      }
-    });
+    let recordedChunks = [];
+
     mediaRecorder.addEventListener('dataavailable', async function(e) { //assuming this event only happens after recording 
       recordedChunks = [];
       if (e.data.size > 0) {
         recordedChunks.push(e.data);
+        console.log('doone yo')
+        window.chunkss = recordedChunks;
       }
-    });
-
-    
-    mediaRecorder.addEventListener('start', () => {
-      mediaRecorder.pause();
-      baseTrackSource.start();
-      mediaRecorder.resume();
-      console.log("start track" + this.audioCtx.currentTime);
     });
     var doneResolver;
     const donePromise = new Promise((resolve) => doneResolver = resolve);
-    baseTrackSource.addEventListener('ended', () => doneResolver() )
-    setTimeout(() => {
-        console.log("start recorder" + this.audioCtx.currentTime);
-        mediaRecorder.start();
-    },100);
+    mediaRecorder.addEventListener('stop', () => {
+      doneResolver();
+    })
     return donePromise;
   }
 

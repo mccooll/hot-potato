@@ -54,7 +54,7 @@ Was blind but now I see",
           if(!this.recording) {
             this.recording = true;
             this.soundServices.record().then(() => {
-              this.$router.push('6');
+              //this.$router.push('6');
               clearTimeout(ref1);
               clearTimeout(ref2);
             });
