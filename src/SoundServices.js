@@ -303,6 +303,7 @@ export class LiveMixer {
   bufferToSource(buffer) {
     let source = this.ctx.createBufferSource();
     source.buffer = buffer;
+    source.loop = true;
     return source;
   }
 
