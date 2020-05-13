@@ -31,4 +31,13 @@ export default class SoundServicesTestRig extends SoundServices {
       let track = tracks[0];
       console.log(track.getSettings());
     }
+
+    async setupChannelMixingMock() {
+      const arrayBuffer = await this.fetchArrayBuffer('2channel.oga');
+      const buffer = await this.getBufferFromEncoded(arrayBuffer)
+      this.baseTrack.volume = this.getVolume(buffer.getChannelData(0));
+      this.micTrack.volume = this.getVolume(buffer.getChannelData(1));
+      console.log(this.baseTrack.volume);
+      console.log(this.micTrack.volume);
+    }
 }

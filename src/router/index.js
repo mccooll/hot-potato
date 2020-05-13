@@ -7,7 +7,7 @@ import Ready from '../components/Ready'
 import Sing from '../components/Sing'
 import Mixer from '../components/Mixer'
 import Upload from '../components/Upload'
-import SoundServices from '../SoundServices'
+import SoundServices from '../SoundServicesTestRig'
 
 const soundServices = new SoundServices();
 

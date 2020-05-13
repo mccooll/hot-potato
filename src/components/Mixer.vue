@@ -25,6 +25,7 @@ export default {
     this.$emit('bubble', 2);
     //await this.soundServices.setMockTracks();
     //this.soundServices.liveMixMocks();
+    this.soundServices.setupChannelMixingMock();
     if(this.soundServices.liveMixer) {
       this.time = Math.ceil(this.soundServices.liveMixer.delay*1000);
       this.setTime();
