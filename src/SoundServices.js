@@ -152,7 +152,11 @@ export default class SoundServices {
     });
     var doneResolver;
     const donePromise = new Promise((resolve) => doneResolver = resolve);
-    mediaRecorder.addEventListener('stop', () => {
+    mediaRecorder.addEventListener('stop', async () => {
+      const buffer = await this.getRecordedBuffer(recordedChunks);
+      this.micTrack.volume = this.getVolume(buffer.getChannelData(1));
+      const gain = this.baseTrack.volume/this.micTrack.volume;
+      this.liveMixer = new LiveMixer(buffer, gain);
       doneResolver();
     })
     return donePromise;
