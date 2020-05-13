@@ -106,12 +106,13 @@ export default class SoundServices {
     rmss.pop(); rmss.pop();
     this.quietRMS = rmss.reduce((s,v)=> s + v)/rmss.length;
     analyzer.stop();
+    streamSource.disconnect();
   }
 
   async record() {
     const baseTrackSource = this.bufferToSource(this.baseTrack.buffer);
     baseTrackSource.connect(this.audioCtx.destination);
-    const recordedChunks = [];
+    let recordedChunks = [];
     const mediaRecorder = new MediaRecorder(this.stream, { mimeType: 'audio/webm' });
 
     baseTrackSource.addEventListener('ended', () => {
@@ -136,6 +137,7 @@ export default class SoundServices {
       }
     });
     mediaRecorder.addEventListener('dataavailable', async function(e) { //assuming this event only happens after recording 
+      recordedChunks = [];
       if (e.data.size > 0) {
         recordedChunks.push(e.data);
       }
@@ -143,14 +145,18 @@ export default class SoundServices {
 
     
     mediaRecorder.addEventListener('start', () => {
+      mediaRecorder.pause();
       baseTrackSource.start();
+      mediaRecorder.resume();
       console.log("start track" + this.audioCtx.currentTime);
     });
-    console.log("start recorder" + this.audioCtx.currentTime);
-    mediaRecorder.start();
     var doneResolver;
     const donePromise = new Promise((resolve) => doneResolver = resolve);
     baseTrackSource.addEventListener('ended', () => doneResolver() )
+    setTimeout(() => {
+        console.log("start recorder" + this.audioCtx.currentTime);
+        mediaRecorder.start();
+    },100);
     return donePromise;
   }
 
