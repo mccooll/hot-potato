@@ -244,6 +244,7 @@ export class LiveMixer {
   baseNode;
   ctx;
   killed;
+  initialNode;
 
   constructor(recordedBuffer2, gain) {
     this.killed = false;
@@ -271,24 +272,6 @@ export class LiveMixer {
     initialNode.start();
   }
 
-  // setupSingleUseNodes(recordedBuffer, baseBuffer) {
-  //   if(this.recordedNode) this.recordedNode.disconnect();
-  //   this.recordedNode = this.bufferToSource(recordedBuffer);
-  //   this.recordedNode.connect(this.gainNode);
-  //   if(this.baseNode) this.baseNode.disconnect();
-  //   this.baseNode = this.bufferToSource(baseBuffer);
-  //   this.baseNode.connect(this.delayNode);
-  //   let time = this.ctx.currentTime;
-  //   let length = Math.min(recordedBuffer.length, baseBuffer.length)/48000;
-  //   this.recordedNode.start(time + 1, 0, length);
-  //   this.baseNode.start(time +1, 0, length);
-  //   this.baseNode.addEventListener('ended', () => {
-  //     if(!this.killed) {
-  //       this.setupSingleUseNodes(recordedBuffer, baseBuffer);
-  //     }
-  //   })
-  // }
-
   kill() {
     this.killed = true;
     this.stop();
@@ -296,8 +279,7 @@ export class LiveMixer {
   }
 
   stop() {
-    this.recordedNode.stop();
-    this.baseNode.stop();
+    this.initialNode.stop();
   }
 
   bufferToSource(buffer) {
