@@ -14,7 +14,7 @@ export default {
   props: ['soundServices'],
   mounted: async function() {
     this.$emit('bubble', 2);
-    let render = await this.soundServices.mix(this.soundServices.liveMixer.recordedNode.buffer, this.soundServices.liveMixer.baseNode.buffer);
+    let render = await this.soundServices.mix(this.soundServices.liveMixer.initialNode.buffer);
     this.soundServices.saveMixed(render).then(() => {
       this.status = "Song upload saved";
     });

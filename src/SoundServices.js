@@ -170,25 +170,30 @@ export default class SoundServices {
     return recordedAudioBuffer;
   }
 
-  async mix(recordedBuffer, trackBuffer) {
-    const offlineAudioCtx = new OfflineAudioContext(1, trackBuffer.duration*48000, 48000);
-    const originTrackSource = offlineAudioCtx.createBufferSource();
-    originTrackSource.buffer = trackBuffer;
+  async mix(buffer2) {
+    const offlineAudioCtx = new OfflineAudioContext(1, buffer2.duration*48000, 48000);
+    const source = offlineAudioCtx.createBufferSource();
+    window.u = source;
+    source.buffer = buffer2;
+
+    const splitter = offlineAudioCtx.createChannelSplitter(2);
+    const merger = offlineAudioCtx.createChannelMerger(2);
+
     const delay = this.liveMixer.delay;
     const delayNode = offlineAudioCtx.createDelay(Math.max(delay,1));
     delayNode.delayTime.setValueAtTime(delay, 0);
-    delayNode.connect(offlineAudioCtx.destination);
-    originTrackSource.connect(delayNode);
 
-    const recordedTrackSource = offlineAudioCtx.createBufferSource();
-    recordedTrackSource.buffer = recordedBuffer;
     const gain = offlineAudioCtx.createGain();
-    gain.gain.value = this.getGain(this.micTrack.volume, this.baseTrack.volume);
-    recordedTrackSource.connect(gain);
-    gain.connect(offlineAudioCtx.destination);
+    gain.gain.value = this.liveMixer.gainNode.gain.value
 
-    originTrackSource.start(0);
-    recordedTrackSource.start(0);
+    source.connect(splitter);
+    splitter.connect(delayNode, 0);
+    splitter.connect(gain, 1);
+    delayNode.connect(merger, 0, 0);
+    gain.connect(merger, 0, 1);
+    merger.connect(offlineAudioCtx.destination);
+    source.start(0)
+
     const render = await offlineAudioCtx.startRendering();
     return render;
   }
@@ -257,19 +262,19 @@ export class LiveMixer {
     this.gainNode = this.ctx.createGain();
     this.gainNode.gain.value = gain;
 
-    const initialNode = this.bufferToSource(recordedBuffer2);
+    this.initialNode = this.bufferToSource(recordedBuffer2);
     
     const splitter = this.ctx.createChannelSplitter(2);
     const merger = this.ctx.createChannelMerger(2);
     //const destination = this.ctx.createMediaStreamDestination();
     
-    initialNode.connect(splitter);
+    this.initialNode.connect(splitter);
     splitter.connect(this.delayNode, 0);
     splitter.connect(this.gainNode, 1);
     this.delayNode.connect(merger, 0, 0);
     this.gainNode.connect(merger, 0, 1);
     merger.connect(this.ctx.destination);
-    initialNode.start();
+    this.initialNode.start();
   }
 
   kill() {
