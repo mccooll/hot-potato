@@ -37,7 +37,12 @@ export default class SoundServicesTestRig extends SoundServices {
       const buffer = await this.getBufferFromEncoded(arrayBuffer)
       this.baseTrack.volume = this.getVolume(buffer.getChannelData(0));
       this.micTrack.volume = this.getVolume(buffer.getChannelData(1));
-      console.log(this.baseTrack.volume);
-      console.log(this.micTrack.volume);
+      const gain = this.baseTrack.volume/this.micTrack.volume;
+      const clickHandler = () => {
+        this.liveMixer = new LiveMixer(buffer, gain);
+        document.removeEventListener('click', clickHandler);
+      }
+      document.addEventListener('click', clickHandler);
+      window.that = this;
     }
 }

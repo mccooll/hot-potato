@@ -245,42 +245,49 @@ export class LiveMixer {
   ctx;
   killed;
 
-  constructor(recordedBuffer, baseBuffer, gain) {
+  constructor(recordedBuffer2, gain) {
     this.killed = false;
-    console.log("additional length of recording" + (recordedBuffer.length - baseBuffer.length)/48000)
-
-    this.ctx = new AudioContext();    
     
-    this.delay = 0;
-    this.delay = baseBuffer.duration - recordedBuffer.duration + this.ctx.baseLatency;
-    if(!(this.delay > 0)) this.delay = 0; 
+    this.ctx = new AudioContext();    
+
+    this.delay = 0.005 + this.ctx.baseLatency;
     this.delayNode = this.ctx.createDelay(1);
-    this.delayNode.connect(this.ctx.destination);
 
     this.gainNode = this.ctx.createGain();
     this.gainNode.gain.value = gain;
-    this.gainNode.connect(this.ctx.destination);
 
-    this.setupSingleUseNodes(recordedBuffer, baseBuffer);
+    const initialNode = this.bufferToSource(recordedBuffer2);
+    
+    const splitter = this.ctx.createChannelSplitter(2);
+    const merger = this.ctx.createChannelMerger(2);
+    //const destination = this.ctx.createMediaStreamDestination();
+    
+    initialNode.connect(splitter);
+    splitter.connect(this.delayNode, 0);
+    splitter.connect(this.gainNode, 1);
+    this.delayNode.connect(merger, 0, 0);
+    this.gainNode.connect(merger, 0, 1);
+    merger.connect(this.ctx.destination);
+    initialNode.start();
   }
 
-  setupSingleUseNodes(recordedBuffer, baseBuffer) {
-    if(this.recordedNode) this.recordedNode.disconnect();
-    this.recordedNode = this.bufferToSource(recordedBuffer);
-    this.recordedNode.connect(this.gainNode);
-    if(this.baseNode) this.baseNode.disconnect();
-    this.baseNode = this.bufferToSource(baseBuffer);
-    this.baseNode.connect(this.delayNode);
-    let time = this.ctx.currentTime;
-    let length = Math.min(recordedBuffer.length, baseBuffer.length)/48000;
-    this.recordedNode.start(time + 1, 0, length);
-    this.baseNode.start(time +1, 0, length);
-    this.baseNode.addEventListener('ended', () => {
-      if(!this.killed) {
-        this.setupSingleUseNodes(recordedBuffer, baseBuffer);
-      }
-    })
-  }
+  // setupSingleUseNodes(recordedBuffer, baseBuffer) {
+  //   if(this.recordedNode) this.recordedNode.disconnect();
+  //   this.recordedNode = this.bufferToSource(recordedBuffer);
+  //   this.recordedNode.connect(this.gainNode);
+  //   if(this.baseNode) this.baseNode.disconnect();
+  //   this.baseNode = this.bufferToSource(baseBuffer);
+  //   this.baseNode.connect(this.delayNode);
+  //   let time = this.ctx.currentTime;
+  //   let length = Math.min(recordedBuffer.length, baseBuffer.length)/48000;
+  //   this.recordedNode.start(time + 1, 0, length);
+  //   this.baseNode.start(time +1, 0, length);
+  //   this.baseNode.addEventListener('ended', () => {
+  //     if(!this.killed) {
+  //       this.setupSingleUseNodes(recordedBuffer, baseBuffer);
+  //     }
+  //   })
+  // }
 
   kill() {
     this.killed = true;
