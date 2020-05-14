@@ -25,13 +25,16 @@ export default {
   },
   methods: {
     badBroswer() {
+      if(!window.Response) {
+        window.alert("This browser is not supported. Try firefox.");
+      }
       let x = new Response();
       if(!x.arrayBuffer) {
         window.alert("This browser is not supported. Try firefox.");
         return true;
       }
       if(!window.MediaRecorder) { //iOS safari/chrome
-        window.alert("This browser is not supported. Try firefox.");
+        window.alert("Iphone is not supported. This browser is not supported. Try firefox on desktop.");
         return true;
       }
       return false;
