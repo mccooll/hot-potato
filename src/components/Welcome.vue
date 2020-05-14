@@ -30,6 +30,10 @@ export default {
         window.alert("This browser is not supported. Try firefox.");
         return true;
       }
+      if(!window.MediaRecorder) { //iOS safari/chrome
+        window.alert("This browser is not supported. Try firefox.");
+        return true;
+      }
       return false;
     }
   }
