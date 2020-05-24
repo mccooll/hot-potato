@@ -3,12 +3,13 @@
     <h3>Mixing</h3>
     <div>
       <h3>Singing timing adjustment</h3>
-      <h3><span v-if="time > 0">+</span>{{ time.toString() }} ms</h3>
+      <h3><span v-if="time > 0">+</span>{{ time.toString() }} milliseconds</h3>
       <input v-model="time" v-on:change="setTime" type="range" id="volume" name="volume"
-         min="-500" max="500">
+         min="0" max="500">
     </div>
     <div>
       <button @click="soundsGood"><h3>Sounds good to me</h3></button>
+      <button @click="singAgain"><h3>Resing</h3></button>
     </div>
   </div>
 </template>
@@ -41,6 +42,10 @@ export default {
       this.setTime();
       this.soundServices.liveMixer.kill();
       this.$router.push('7');
+    },
+    singAgain: function() {
+      this.soundServices.liveMixer.kill();
+      this.$router.push('5');
     }
   }
 }
