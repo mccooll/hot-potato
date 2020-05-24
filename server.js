@@ -12,7 +12,6 @@ app.use (function (req, res, next) {
 });
 app.use(serveStatic(__dirname + "/dist"));
 app.post('/output', function(request, respond) {
-    var body = '';
     var filepath = __dirname + "/dist/input";
     if(fs.existsSync(filepath)) {
         fs.unlinkSync(filepath);
@@ -23,6 +22,14 @@ app.post('/output', function(request, respond) {
     request.on('end', function (){
        respond.end();
     });
+});
+app.post('/log', express.raw({ type:'*/*' }));
+app.post('/log', function(request, respond) {
+    var filepath = __dirname + "/dist/log";
+
+    fs.appendFileSync(filepath, request.body + '\n');
+
+    respond.end();
 });
 var port = process.env.PORT || 5000;
 app.listen(port);
