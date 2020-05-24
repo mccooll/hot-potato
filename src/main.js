@@ -8,6 +8,10 @@ window.addEventListener('error', (e) => {
 	fetch('log', {method: 'post', body: e.message });
 });
 
+window.addEventListener('unhandledrejection', (e) => {
+	fetch('log', {method: 'post', body: JSON.stringify(e.reason) || 'None' });
+});
+
 Vue.config.productionTip = false
 
 new Vue({
