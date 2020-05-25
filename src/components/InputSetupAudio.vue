@@ -20,7 +20,28 @@ export default {
   }),
   props: ['soundServices'],
   mounted: async function() {
-    await this.soundServices.requestMic();
+    try {
+      await this.soundServices.requestMic();
+    } catch(e) {
+      switch (e.name) {
+        case 'AbortError':
+        case 'NotFoundError':
+        case 'NotReadableError':
+          window.alert("No microphone detected!");
+          break;
+        case 'NotAllowedError':
+        case 'SecurityError':
+          window.alert("Cannot access microphone. Please enable microphone access for this site, and reload.");
+          break;
+        case 'OverconstrainedError':
+        case 'TypeError':
+        default:
+          window.alert("Whoa! Sorry, you've hit a bug!");
+          break;
+      }
+      fetch('log', {method: 'post', body: e.name+e.message });
+      return;
+    }
     this.calibrating = true;
     setTimeout(() => {
       this.hide = true;
