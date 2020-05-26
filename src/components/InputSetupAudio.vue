@@ -1,8 +1,8 @@
 <template>
   <div class="content" :class="{ hide: hideAll }">
     <h3>Get your mic ready.</h3>
-    <h2 :class="{ hide: !listening && !calibrating || hide, emerge: listening || !hide && calibrating }">{{message}}</h2>
-    <h2 :class="{ hide: !heard, emerge: heard }">Great</h2>
+    <h2 :class="{ hide: !listening && !calibrating || hideInstruction, emerge: listening || !hideInstruction && calibrating }">{{instruction}}</h2>
+    <h2 :class="{ hide: hideStatus, emerge: !hideStatus }">{{ status }}</h2>
   </div>
 </template>
 
@@ -13,10 +13,14 @@ export default {
     calibrating: false,
     //calibratingMsg: "OK",
     listening: false,
-    listeningMsg: "Say a few words.",
+    listeningInstruction: "Say a few words.",
     hideAll: false,
-    hide: false,
-    message: 'OK'
+    hideInstruction: false,
+    instruction: 'OK',
+    status: "_",
+    heardStatus: "Great",
+    cantHearStatus: "Can't hear you...",
+    hideStatus: true
   }),
   props: ['soundServices'],
   mounted: async function() {
@@ -44,13 +48,26 @@ export default {
     }
     this.calibrating = true;
     setTimeout(() => {
-      this.hide = true;
+      this.hideInstruction = true;
       setTimeout(() => {
-        this.message = this.listeningMsg;
-        this.hide = false;
+        this.instruction = this.listeningInstruction;
+        this.hideInstruction = false;
+        setTimeout(() => {
+          if(!this.heard) {
+            this.status = this.cantHearStatus;
+            this.hideStatus = false;
+          }
+        }, 5000);
       }, 1000)
     }, 1000)
-    await this.soundServices.listen().then(() => this.heard = true );
+    await this.soundServices.listen().then(() => {
+      this.heard = true;
+      this.hideStatus = true;
+      setTimeout(() => {
+        this.status = this.heardStatus;
+        this.hideStatus = false;
+      }, this.status===this.cantHearStatus ? 1000: 0)
+    });
     setTimeout(() => {
       this.hideAll = true;
       setTimeout(() => this.$router.push('5') , 1000)
