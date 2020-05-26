@@ -159,7 +159,8 @@ export default class SoundServices {
     mediaRecorder.addEventListener('stop', async () => {
       const buffer = await this.getRecordedBuffer(recordedChunks);
       this.micTrack.volume = this.getVolume(buffer.getChannelData(1));
-      const gain = this.baseTrack.volume/this.micTrack.volume;
+      let gain = this.baseTrack.volume/this.micTrack.volume;
+      if(this.micTrack.volume < this.quietRMS*2) gain = 1;
       this.liveMixer = new LiveMixer(buffer, gain, this.stream.getAudioTracks()[0].getSettings().latency || 0);
       doneResolver();
     })
