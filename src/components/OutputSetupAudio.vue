@@ -41,6 +41,7 @@ export default {
     no: function() {
       this.stopCallback();
       this.stopCallback = this.soundServices.playBaseAudio();
+      window.alert("Unmute this site using browser controls and/or check your speakers/headset.")
     },
     rotateMessage:  function() {
       this.hide = false;
