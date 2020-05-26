@@ -10,7 +10,7 @@ export default class SoundServices {
     volume: null,
     buffer: null
   }
-  quietRMS = 0;
+  quietRMS;
   stream;
   mediaRecorder;
   recordedBuffer;
@@ -45,34 +45,11 @@ export default class SoundServices {
     const arrayBuffer = await this.fetchArrayBuffer('input');
     this.baseTrack.buffer = this.getBufferFromRaw(arrayBuffer);
     this.baseTrack.volume = this.getVolume(this.baseTrack.buffer.getChannelData(0));
-    console.log(this.quietRMS)
-    console.log(this.baseTrack.volume)
     console.log("track length" + this.baseTrack.buffer.duration)
   }
 
   getVolume(pcmArray) {
-    const bufferSize = 1024;
-    var index = 0;
-    var samples = 0;
-    var total = 0;
-    while(index < pcmArray.length) {
-      let bufferIndex = 0;
-      let bufferTotal = 0;
-      while(bufferIndex < bufferSize) {
-        let v = pcmArray[bufferIndex + index];
-        bufferTotal += v*v;
-        bufferIndex++;
-      }
-      let bufferRMS = bufferTotal/bufferSize;
-      if(bufferRMS > this.quietRMS) {
-        total += bufferRMS;
-        samples++;
-      }
-      index+=bufferSize;
-    }
-    console.log(total)
-    console.log(samples)
-    return total/samples;
+    return Math.sqrt(pcmArray.reduce((s,v)=> s + v*v)/pcmArray.length);
   }
 
   getGain(linear1, linear2) {
