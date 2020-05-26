@@ -111,7 +111,8 @@ export default {
   h3 {
     font-size: 5vw;
     font-size: min(5vw,5vh);
-    margin: 0;
+    margin: 0 3vw;
+    margin: 0 min(3vw, 3vh);
   }
   .hide {
     transition:all 1s;

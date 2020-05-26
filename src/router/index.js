@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Welcome from '../components/Welcome'
+import Privacy from '../components/Privacy'
 import OutputSetupAudio from '../components/OutputSetupAudio'
 import InputSetupAudio from '../components/InputSetupAudio'
 import Ready from '../components/Ready'
@@ -22,32 +23,40 @@ const routes = [
   {
     path: '/2',
     name: '2',
-    component: OutputSetupAudio,
+    component: Privacy,
     props: (route) => {
       return { soundServices, ...route.params }
     }
   },
   {
     path: '/3',
+    name: '3',
+    component: OutputSetupAudio,
+    props: (route) => {
+      return { soundServices, ...route.params }
+    }
+  },
+  {
+    path: '/4',
     component: InputSetupAudio,
     props: { soundServices }
   },
   {
-    path: '/4',
+    path: '/5',
     component: Ready
   },
   {
-    path: '/5',
+    path: '/6',
     component: Sing,
     props: { soundServices }
   },
   {
-    path: '/6',
+    path: '/7',
     component: Mixer,
     props: { soundServices }
   },
   {
-    path: '/7',
+    path: '/8',
     component: Upload,
     props: { soundServices }
   }

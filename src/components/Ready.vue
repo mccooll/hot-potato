@@ -22,7 +22,7 @@ export default {
   methods: {
     yes: function() {
       this.hide = true;
-      setTimeout(() => this.$router.push('5'), 1000);
+      setTimeout(() => this.$router.push('6'), 1000);
     }
   }
 }

@@ -34,7 +34,8 @@ export default {
     yes: function() {
       if(!this.loading) {
         this.stopCallback();
-        this.$router.push('3');
+        this.soundServices.audioCtx.resume();
+        this.$router.push('4');
       }
     },
     no: function() {

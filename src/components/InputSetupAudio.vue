@@ -53,7 +53,7 @@ export default {
     await this.soundServices.listen().then(() => this.heard = true );
     setTimeout(() => {
       this.hideAll = true;
-      setTimeout(() => this.$router.push('4') , 1000)
+      setTimeout(() => this.$router.push('5') , 1000)
     }, 3000)
   }
 }

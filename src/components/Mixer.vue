@@ -41,11 +41,11 @@ export default {
     soundsGood: function() {
       this.setTime();
       this.soundServices.liveMixer.kill();
-      this.$router.push('7');
+      this.$router.push('8');
     },
     singAgain: function() {
       this.soundServices.liveMixer.kill();
-      this.$router.push('5');
+      this.$router.push('6');
     }
   }
 }
