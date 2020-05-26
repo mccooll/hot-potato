@@ -100,15 +100,13 @@ export default class SoundServices {
       "callback": features => {
         rmss.push(features.rms);
         if( rmss.length > 2 && ( features.spectralFlatness < 0.2 || (features.rms/3 > (rmss[0]+rmss[1])) ) ) {
-          console.log(features.spectralFlatness);
-          console.log(features.rms)
+          fetch('log', {method: 'post', body: "heard SF "+features.spectralFlatness });
           heardResolver();
         } 
       }
     });
     analyzer.start();
     await heardPromise;
-    console.log(rmss);
     rmss.pop(); rmss.pop();
     this.quietRMS = rmss.reduce((s,v)=> s + v)/rmss.length;
     analyzer.stop();
