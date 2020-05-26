@@ -81,7 +81,8 @@ export default class SoundServices {
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: {
       autoGainControl: false,
       echoCancellation: false,
-      channelCount: 1
+      channelCount: 1,
+      latency: 0
     }, video: false })
     return this.stream;
   }
@@ -98,7 +99,7 @@ export default class SoundServices {
       "featureExtractors": ["spectralFlatness", "buffer", "rms"],
       "callback": features => {
         rmss.push(features.rms);
-        if(features.spectralFlatness < 0.35 && rmss.length > 2) {
+        if(features.spectralFlatness < 0.2 && rmss.length > 2) {
           console.log(features.spectralFlatness);
           heardResolver();
         } 
@@ -159,7 +160,7 @@ export default class SoundServices {
       const buffer = await this.getRecordedBuffer(recordedChunks);
       this.micTrack.volume = this.getVolume(buffer.getChannelData(1));
       const gain = this.baseTrack.volume/this.micTrack.volume;
-      this.liveMixer = new LiveMixer(buffer, gain);
+      this.liveMixer = new LiveMixer(buffer, gain, this.stream.getAudioTracks()[0].getSettings().latency || 0);
       doneResolver();
     })
     return donePromise;
@@ -258,12 +259,12 @@ export class LiveMixer {
   killed;
   initialNode;
 
-  constructor(recordedBuffer2, gain) {
+  constructor(recordedBuffer2, gain, micDelay) {
     this.killed = false;
     
     this.ctx = new AudioContext();    
 
-    this.delay = 0.005 + this.ctx.baseLatency;
+    this.delay = 0.005 + this.ctx.baseLatency + micDelay;
     this.delayNode = this.ctx.createDelay(1);
 
     this.gainNode = this.ctx.createGain();
