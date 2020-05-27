@@ -108,7 +108,7 @@ export default class SoundServices {
     analyzer.start();
     await heardPromise;
     rmss.pop(); rmss.pop();
-    this.quietRMS = rmss.reduce((s,v)=> s + v)/rmss.length;
+    this.quietRMS = Math.sqrt(rmss.reduce((s,v)=> s + v*v)/rmss.length);
     analyzer.stop();
     streamSource.disconnect();
   }
@@ -161,6 +161,7 @@ export default class SoundServices {
       this.micTrack.volume = this.getVolume(buffer.getChannelData(1));
       let gain = this.baseTrack.volume/this.micTrack.volume;
       if(this.micTrack.volume < this.quietRMS*2) gain = 1;
+      console.log(gain);
       this.liveMixer = new LiveMixer(buffer, gain, this.stream.getAudioTracks()[0].getSettings().latency || 0);
       doneResolver();
     })
