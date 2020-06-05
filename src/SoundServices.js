@@ -185,7 +185,7 @@ export default class SoundServices {
       recordedAudioBuffer = await this.audioCtx.decodeAudioData(arrayBuffer);
     } catch { // safari
       recordedAudioBuffer = await new Promise((resolve, reject) => {
-        this.audioCtx.decodeAudioData(arrayBuffer, resolve, reject);
+        this.audioCtx.decodeAudioData(arrayBuffer, (d) => resolve(d), (e) => reject(e));
       });
     }
     return recordedAudioBuffer;
