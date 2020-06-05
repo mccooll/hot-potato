@@ -32,7 +32,11 @@ export default class SoundServices {
   getBufferFromRaw(arrayBuffer) {
     const array = new Float32Array(arrayBuffer);
     const buffer = this.audioCtx.createBuffer(1,array.length,48000);
-    buffer.copyToChannel(array, 0);
+    try {
+      buffer.copyToChannel(array, 0);
+    } catch {
+      buffer.getChannelData(0).set(array); //safari
+    }
     return buffer;
   }
 
