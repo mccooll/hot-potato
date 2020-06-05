@@ -4,6 +4,7 @@ import router from './router'
 import AudioRecorder from 'audio-recorder-polyfill'
 
 if(!window.AudioContext) window.AudioContext = window.webkitAudioContext;
+if(!window.OfflineAudioContext) window.OfflineAudioContext = window.webkitOfflineAudioContext;
 if(!window.MediaRecorder) window.MediaRecorder = AudioRecorder;
 
 window.addEventListener('error', (e) => {

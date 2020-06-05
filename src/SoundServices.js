@@ -145,11 +145,21 @@ export default class SoundServices {
     bufferRecorder.start();
     //mediaRecorder.start();
 
+    var doneResolver; //eslint-disable-line
+    const donePromise = new Promise((resolve) => doneResolver = resolve);
     baseTrackSource.addEventListener('ended', () => {
       bufferRecorder.stop();
+      const buffer = bufferRecorder.output;
+      this.micTrack.volume = this.getVolume(buffer.getChannelData(1));
+      let gain = this.baseTrack.volume/this.micTrack.volume;
+      if(this.micTrack.volume < this.quietRMS*2) gain = 1;
+      console.log(gain);
+      this.liveMixer = new LiveMixer(buffer, gain, this.stream.getAudioTracks()[0].getSettings().latency || 0);
+      
       //mediaRecorder.stop();
       console.log('track ended and recording stopped' + this.audioCtx.currentTime);
       baseTrackSource.disconnect();
+      doneResolver();
     });
 
     // let recordedChunks = [];
@@ -162,8 +172,8 @@ export default class SoundServices {
     //     window.chunkss = recordedChunks;
     //   }
     // });
-    var doneResolver; //eslint-disable-line
-    const donePromise = new Promise((resolve) => doneResolver = resolve);
+    // var doneResolver; //eslint-disable-line
+    // const donePromise = new Promise((resolve) => doneResolver = resolve);
     // mediaRecorder.addEventListener('stop', async () => {
     //   const buffer = await this.getRecordedBuffer(recordedChunks);
     //   this.micTrack.volume = this.getVolume(buffer.getChannelData(1));
