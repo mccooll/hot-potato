@@ -161,7 +161,7 @@ export default class SoundServices {
     //     window.chunkss = recordedChunks;
     //   }
     // });
-    var doneResolver;
+    var doneResolver; //eslint-disable-line
     const donePromise = new Promise((resolve) => doneResolver = resolve);
     // mediaRecorder.addEventListener('stop', async () => {
     //   const buffer = await this.getRecordedBuffer(recordedChunks);
@@ -343,16 +343,17 @@ class SafariAudioBufferRecorder {
   }
 
   process(e) {
-    samples.push(e.inputBuffer.slice());
+    this.samples.push(e.inputBuffer.slice());
   }
 
   stop() {
     this.processor.disconnect();
     this.source.disconnect.disconnect();
-    this.output = this.context.createBuffer(2, this.samples.length*this.bufferSize, context.sampleRate);
+    this.output = this.context.createBuffer(2, this.samples.length*this.bufferSize, this.context.sampleRate);
     const one = this.output.getChannelData(0);
     const two = this.output.getChannelData(1);
-    this.samples.forEach((v, i, a, this) => {
+    var that = this; //eslint-disable-line
+    this.samples.forEach((v, i, a, that) => { //eslint-disable-line
       one.set(v.getChannelData(0), i*this.bufferSize)
       two.set(v.getChannelData(1), i*this.bufferSize)
     })
