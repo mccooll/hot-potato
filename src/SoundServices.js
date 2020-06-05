@@ -137,38 +137,41 @@ export default class SoundServices {
 
     merger.connect(mixedStream);
 
-    const mediaRecorder = new MediaRecorder(mixedStream.stream, { mimeType: 'audio/webm' });
+    const bufferRecorder = new SafariAudioBufferRecorder(this.audioCtx, mixedStream.stream);
+
+    //const mediaRecorder = new MediaRecorder(mixedStream.stream, { mimeType: 'audio/webm' });
 
     baseTrackSource.start();
-    mediaRecorder.start();
+    bufferRecorder.start();
+    //mediaRecorder.start();
 
-    baseTrackSource.addEventListener('ended', () => {
-      mediaRecorder.stop();
-      console.log('track ended and recording stopped' + this.audioCtx.currentTime);
-      baseTrackSource.disconnect();
-    });
+    // baseTrackSource.addEventListener('ended', () => {
+    //   mediaRecorder.stop();
+    //   console.log('track ended and recording stopped' + this.audioCtx.currentTime);
+    //   baseTrackSource.disconnect();
+    // });
 
-    let recordedChunks = [];
+    // let recordedChunks = [];
 
-    mediaRecorder.addEventListener('dataavailable', async function(e) { //assuming this event only happens after recording 
-      recordedChunks = [];
-      if (e.data.size > 0) {
-        recordedChunks.push(e.data);
-        console.log('doone yo')
-        window.chunkss = recordedChunks;
-      }
-    });
+    // mediaRecorder.addEventListener('dataavailable', async function(e) { //assuming this event only happens after recording 
+    //   recordedChunks = [];
+    //   if (e.data.size > 0) {
+    //     recordedChunks.push(e.data);
+    //     console.log('doone yo')
+    //     window.chunkss = recordedChunks;
+    //   }
+    // });
     var doneResolver;
     const donePromise = new Promise((resolve) => doneResolver = resolve);
-    mediaRecorder.addEventListener('stop', async () => {
-      const buffer = await this.getRecordedBuffer(recordedChunks);
-      this.micTrack.volume = this.getVolume(buffer.getChannelData(1));
-      let gain = this.baseTrack.volume/this.micTrack.volume;
-      if(this.micTrack.volume < this.quietRMS*2) gain = 1;
-      console.log(gain);
-      this.liveMixer = new LiveMixer(buffer, gain, this.stream.getAudioTracks()[0].getSettings().latency || 0);
-      doneResolver();
-    })
+    // mediaRecorder.addEventListener('stop', async () => {
+    //   const buffer = await this.getRecordedBuffer(recordedChunks);
+    //   this.micTrack.volume = this.getVolume(buffer.getChannelData(1));
+    //   let gain = this.baseTrack.volume/this.micTrack.volume;
+    //   if(this.micTrack.volume < this.quietRMS*2) gain = 1;
+    //   console.log(gain);
+    //   this.liveMixer = new LiveMixer(buffer, gain, this.stream.getAudioTracks()[0].getSettings().latency || 0);
+    //   doneResolver();
+    // })
     return donePromise;
   }
 
@@ -318,5 +321,40 @@ export class LiveMixer {
   setRecordingDelay(delay) {
     this.delay = delay;
     this.delayNode.delayTime.linearRampToValueAtTime(delay, this.ctx.currentTime + 2)
+  }
+}
+
+class SafariAudioBufferRecorder {
+  bufferSize = 4096;
+  source;
+  samples = [];
+  context;
+  output;
+
+  constructor(context, stream) {
+    this.source = context.createMediaStreamSource(stream);
+    this.context = context;
+    this.processor = this.context.createScriptProcessor(this.bufferSize, 2, 2);
+    this.processor.onaudioprocess = this.process.bind(this);
+  }
+
+  start() {
+    this.source.connect(this.processor)
+  }
+
+  process(e) {
+    samples.push(e.inputBuffer.slice());
+  }
+
+  stop() {
+    this.processor.disconnect();
+    this.source.disconnect.disconnect();
+    this.output = this.context.createBuffer(2, this.samples.length*this.bufferSize, context.sampleRate);
+    const one = this.output.getChannelData(0);
+    const two = this.output.getChannelData(1);
+    this.samples.forEach((v, i, a, this) => {
+      one.set(v.getChannelData(0), i*this.bufferSize)
+      two.set(v.getChannelData(1), i*this.bufferSize)
+    })
   }
 }
