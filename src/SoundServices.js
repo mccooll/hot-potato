@@ -201,7 +201,14 @@ export default class SoundServices {
     } catch {
       arrayBuffer = await new Response(chunksBlob).arrayBuffer();
     }
-    const recordedAudioBuffer = await this.audioCtx.decodeAudioData(arrayBuffer);
+    var recordedAudioBuffer;
+    try {
+      recordedAudioBuffer = await this.audioCtx.decodeAudioData(arrayBuffer);
+    } catch { // safari
+      recordedAudioBuffer = await new Promise((resolve, reject) => {
+        this.audioCtx.decodeAudioData(arrayBuffer, resolve, reject);
+      });
+    }
     return recordedAudioBuffer;
   }
 
