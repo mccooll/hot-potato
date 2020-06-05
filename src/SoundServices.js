@@ -145,11 +145,12 @@ export default class SoundServices {
     bufferRecorder.start();
     //mediaRecorder.start();
 
-    // baseTrackSource.addEventListener('ended', () => {
-    //   mediaRecorder.stop();
-    //   console.log('track ended and recording stopped' + this.audioCtx.currentTime);
-    //   baseTrackSource.disconnect();
-    // });
+    baseTrackSource.addEventListener('ended', () => {
+      bufferRecorder.stop();
+      //mediaRecorder.stop();
+      console.log('track ended and recording stopped' + this.audioCtx.currentTime);
+      baseTrackSource.disconnect();
+    });
 
     // let recordedChunks = [];
 
@@ -332,6 +333,8 @@ class SafariAudioBufferRecorder {
   output;
 
   constructor(context, stream) {
+    this.samples[0] = []
+    this.samples[1] = []
     this.source = context.createMediaStreamSource(stream);
     this.context = context;
     this.processor = this.context.createScriptProcessor(this.bufferSize, 2, 2);
@@ -343,19 +346,24 @@ class SafariAudioBufferRecorder {
   }
 
   process(e) {
-    this.samples.push(e.inputBuffer.slice());
+    e.inputBuffer.getChannelData(0);
+    this.samples[0].push(e.inputBuffer.getChannelData(0).slice())
+    e.inputBuffer.getChannelData(1);
+    this.samples[1].push(e.inputBuffer.getChannelData(1).slice())
   }
 
   stop() {
     this.processor.disconnect();
-    this.source.disconnect.disconnect();
-    this.output = this.context.createBuffer(2, this.samples.length*this.bufferSize, this.context.sampleRate);
-    const one = this.output.getChannelData(0);
-    const two = this.output.getChannelData(1);
+    this.source.disconnect();
+    this.output = this.context.createBuffer(2, this.samples[0].length*this.bufferSize, this.context.sampleRate);
     var that = this; //eslint-disable-line
-    this.samples.forEach((v, i, a, that) => { //eslint-disable-line
-      one.set(v.getChannelData(0), i*this.bufferSize)
-      two.set(v.getChannelData(1), i*this.bufferSize)
+    const one = this.output.getChannelData(0);
+    this.samples[0].forEach((v, i, a, that) => { //eslint-disable-line
+      one.set(v, i*this.bufferSize)
+    })
+    const two = this.output.getChannelData(1);
+    this.samples[1].forEach((v, i, a, that) => { //eslint-disable-line
+      two.set(v, i*this.bufferSize)
     })
   }
 }
