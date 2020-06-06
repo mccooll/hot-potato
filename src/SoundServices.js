@@ -147,17 +147,19 @@ export default class SoundServices {
 
     var doneResolver; //eslint-disable-line
     const donePromise = new Promise((resolve) => doneResolver = resolve);
+    let that = this;
     baseTrackSource.addEventListener('ended', () => {
       bufferRecorder.stop();
       const buffer = bufferRecorder.output;
-      this.micTrack.volume = this.getVolume(buffer.getChannelData(1));
-      let gain = this.baseTrack.volume/this.micTrack.volume;
-      if(this.micTrack.volume < this.quietRMS*2) gain = 1;
+      window.outoutout = buffer;
+      that.micTrack.volume = this.getVolume(buffer.getChannelData(1));
+      let gain = that.baseTrack.volume/that.micTrack.volume;
+      if(that.micTrack.volume < that.quietRMS*2) gain = 1;
       console.log(gain);
-      this.liveMixer = new LiveMixer(buffer, gain, this.stream.getAudioTracks()[0].getSettings().latency || 0);
+      that.liveMixer = new LiveMixer(buffer, gain, that.stream.getAudioTracks()[0].getSettings().latency || 0);
       
       //mediaRecorder.stop();
-      console.log('track ended and recording stopped' + this.audioCtx.currentTime);
+      console.log('track ended and recording stopped' + that.audioCtx.currentTime);
       baseTrackSource.disconnect();
       doneResolver();
     });
@@ -353,6 +355,7 @@ class SafariAudioBufferRecorder {
 
   start() {
     this.source.connect(this.processor)
+    this.processor.connect(this.context.destination)
   }
 
   process(e) {
