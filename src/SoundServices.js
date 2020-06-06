@@ -47,7 +47,7 @@ export default class SoundServices {
 
   async fetchBaseAudio() {
     const arrayBuffer = await this.fetchArrayBuffer('input');
-    this.baseTrack.buffer = this.getBufferFromRaw(arrayBuffer);
+    this.baseTrack.buffer = await this.resample(this.getBufferFromRaw(arrayBuffer), this.audioCtx.sampleRate);
     this.baseTrack.volume = this.getVolume(this.baseTrack.buffer.getChannelData(0));
     console.log("track length" + this.baseTrack.buffer.duration)
   }
@@ -114,7 +114,7 @@ export default class SoundServices {
     rmss.pop(); rmss.pop();
     this.quietRMS = Math.sqrt(rmss.reduce((s,v)=> s + v*v)/rmss.length);
     analyzer.stop();
-    streamSource.disconnect();
+    //streamSource.disconnect();
   }
 
   async record() {
@@ -214,10 +214,9 @@ export default class SoundServices {
     source.connect(offlineAudioCtx.destination);
     source.start(0);
     var render;
-    try {
-      render = await offlineAudioCtx.startRendering();
-    } catch {
-      render = await new Promise((resolve, reject) => {
+    render = await offlineAudioCtx.startRendering();
+    if(!render) {
+      render = await new Promise((resolve) => {
         offlineAudioCtx.startRendering();
         offlineAudioCtx.oncomplete = (e) => resolve(e.renderedBuffer);
       });
@@ -377,9 +376,7 @@ class SafariAudioBufferRecorder {
   }
 
   process(e) {
-    e.inputBuffer.getChannelData(0);
     this.samples[0].push(e.inputBuffer.getChannelData(0).slice())
-    e.inputBuffer.getChannelData(1);
     this.samples[1].push(e.inputBuffer.getChannelData(1).slice())
   }
 
