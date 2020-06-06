@@ -332,7 +332,7 @@ export class LiveMixer {
     
     this.ctx = new AudioContext();    
 
-    this.delay = 0.005 + this.ctx.baseLatency + micDelay;
+    this.delay = 0.005 + (this.ctx.baseLatency || 0) + micDelay;
     this.delayNode = this.ctx.createDelay(1);
 
     this.gainNode = this.ctx.createGain();
