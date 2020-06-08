@@ -1,4 +1,4 @@
-import Meyda from 'meyda'
+//import Meyda from 'meyda'
 
 export default class SoundServices {
 
@@ -82,66 +82,48 @@ export default class SoundServices {
   }
 
   async requestMic() {
-    this.stream = await navigator.mediaDevices.getUserMedia({ audio: {
-      autoGainControl: false,
-      echoCancellation: false,
-      channelCount: 1,
-      latency: 0
-    }, video: false })
+    this.stream = await navigator.mediaDevices.getUserMedia({ audio:true, video: false })
     return this.stream;
   }
 
   async listen() {
-    const streamSource = this.audioCtx.createMediaStreamSource(this.stream);
-    var heardResolver;
-    var heardPromise = new Promise((resolve) => heardResolver = resolve);
-    var rmss = [];
-    const analyzer = Meyda.createMeydaAnalyzer({
-      "audioContext": this.audioCtx,
-      "source": streamSource,
-      "bufferSize": 16384,
-      "featureExtractors": ["spectralFlatness", "buffer", "rms"],
-      "callback": features => {
-        rmss.push(features.rms);
-        if( rmss.length > 2 && ( features.spectralFlatness < 0.2 || (features.rms/3 > (rmss[0]+rmss[1])) ) ) {
-          fetch('log', {method: 'post', body: "heard SF "+features.spectralFlatness });
-          heardResolver();
-        } 
-      }
-    });
-    analyzer.start();
-    await heardPromise;
-    rmss.pop(); rmss.pop();
-    this.quietRMS = Math.sqrt(rmss.reduce((s,v)=> s + v*v)/rmss.length);
-    analyzer.stop();
+    const streamSource = this.audioCtx.createMediaStreamSource(this.stream); //eslint-disable-line
+    this.quietRMS = 0;
+    return;
+    // var heardResolver;
+    // var heardPromise = new Promise((resolve) => heardResolver = resolve);
+    // var rmss = [];
+    // const analyzer = Meyda.createMeydaAnalyzer({
+    //   "audioContext": this.audioCtx,
+    //   "source": streamSource,
+    //   "bufferSize": 16384,
+    //   "featureExtractors": ["spectralFlatness", "buffer", "rms"],
+    //   "callback": features => {
+    //     rmss.push(features.rms);
+    //     if( rmss.length > 2 && ( features.spectralFlatness < 0.2 || (features.rms/3 > (rmss[0]+rmss[1])) ) ) {
+    //       fetch('log', {method: 'post', body: "heard SF "+features.spectralFlatness });
+    //       heardResolver();
+    //     } 
+    //   }
+    // });
+    // analyzer.start();
+    // await heardPromise;
+    // rmss.pop(); rmss.pop();
+    // this.quietRMS = Math.sqrt(rmss.reduce((s,v)=> s + v*v)/rmss.length);
+    // analyzer.stop();
     //streamSource.disconnect();
   }
 
   async record() {
-    const merger = this.audioCtx.createChannelMerger(2);
-    const mixedStream = this.audioCtx.createMediaStreamDestination();
-    
-    const baseTrackSplitter = this.audioCtx.createChannelSplitter(1);
     const baseTrackSource = this.bufferToSource(this.baseTrack.buffer);
     baseTrackSource.connect(this.audioCtx.destination);
-    baseTrackSource.connect(baseTrackSplitter);
-    baseTrackSplitter.connect(merger,0,0)
 
-    const micSplitter = this.audioCtx.createChannelSplitter(1);
-    const micStream = this.audioCtx.createMediaStreamSource(this.stream);
-    var gainNode = this.audioCtx.createGain();
-    micStream.connect(gainNode);
-    gainNode.gain.value = 4;
-    gainNode.connect(micSplitter);
-    micSplitter.connect(merger, 0, 1);
-
-    merger.connect(mixedStream);
-
-    const bufferRecorder = new SafariAudioBufferRecorder(this.audioCtx, mixedStream.stream);
+    const bufferRecorder = new SafariAudioBufferRecorder(this.audioCtx, this.stream);
 
     //const mediaRecorder = new MediaRecorder(mixedStream.stream, { mimeType: 'audio/webm' });
 
     baseTrackSource.start();
+    setTimeout(()=>baseTrackSource.stop(),5000)
     bufferRecorder.start();
     //mediaRecorder.start();
 
@@ -366,7 +348,7 @@ class SafariAudioBufferRecorder {
     this.samples[1] = []
     this.source = context.createMediaStreamSource(stream);
     this.context = context;
-    this.processor = this.context.createScriptProcessor(this.bufferSize, 2, 2);
+    this.processor = this.context.createScriptProcessor(this.bufferSize, 1, 1);
     this.processor.onaudioprocess = this.process.bind(this);
   }
 
@@ -377,21 +359,21 @@ class SafariAudioBufferRecorder {
 
   process(e) {
     this.samples[0].push(e.inputBuffer.getChannelData(0).slice())
-    this.samples[1].push(e.inputBuffer.getChannelData(1).slice())
+    //this.samples[1].push(e.inputBuffer.getChannelData(1).slice())
   }
 
   stop() {
     this.processor.disconnect();
     this.source.disconnect();
-    this.output = this.context.createBuffer(2, this.samples[0].length*this.bufferSize, this.context.sampleRate);
+    this.output = this.context.createBuffer(1, this.samples[0].length*this.bufferSize, this.context.sampleRate);
     var that = this; //eslint-disable-line
     const one = this.output.getChannelData(0);
     this.samples[0].forEach((v, i, a, that) => { //eslint-disable-line
       one.set(v, i*this.bufferSize)
     })
-    const two = this.output.getChannelData(1);
-    this.samples[1].forEach((v, i, a, that) => { //eslint-disable-line
-      two.set(v, i*this.bufferSize)
-    })
+    // const two = this.output.getChannelData(1);
+    // this.samples[1].forEach((v, i, a, that) => { //eslint-disable-line
+    //   two.set(v, i*this.bufferSize)
+    // })
   }
 }
