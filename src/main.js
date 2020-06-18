@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router'
 
 if(!window.AudioContext) window.AudioContext = window.webkitAudioContext;
+if(!window.OfflineAudioContext) window.OfflineAudioContext = window.webkitOfflineAudioContext;
 
 window.addEventListener('error', (e) => {
 	fetch('log', {method: 'post', body: e.message });

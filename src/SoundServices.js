@@ -212,6 +212,23 @@ export default class SoundServices {
     return recordedAudioBuffer;
   }
 
+  async resample(buffer, newRate) {
+    const offlineAudioCtx = new OfflineAudioContext(buffer.numberOfChannels, newRate*buffer.duration, newRate);
+    const source = offlineAudioCtx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(offlineAudioCtx.destination);
+    source.start(0);
+    var render;
+    render = await offlineAudioCtx.startRendering();
+    if(!render) {
+      render = await new Promise((resolve) => {
+        offlineAudioCtx.startRendering();
+        offlineAudioCtx.oncomplete = (e) => resolve(e.renderedBuffer);
+      });
+    }
+    return render;
+  }
+
   async mix(buffer2) {
     const offlineAudioCtx = new OfflineAudioContext(1, buffer2.duration*48000, 48000);
     const source = offlineAudioCtx.createBufferSource();
