@@ -392,3 +392,45 @@ export class LiveMixer {
     this.delayNode.delayTime.linearRampToValueAtTime(delay, this.ctx.currentTime + 2)
   }
 }
+
+class SafariAudioBufferRecorder {
+  bufferSize = 4096;
+  source;
+  samples = [];
+  context;
+  output;
+
+  constructor(context, stream) {
+    this.samples[0] = []
+    this.samples[1] = []
+    this.source = context.createMediaStreamSource(stream);
+    this.context = context;
+    this.processor = this.context.createScriptProcessor(this.bufferSize, 1, 1);
+    this.processor.onaudioprocess = this.process.bind(this);
+  }
+
+  start() {
+    this.source.connect(this.processor)
+    this.processor.connect(this.context.destination)
+  }
+
+  process(e) {
+    this.samples[0].push(e.inputBuffer.getChannelData(0).slice())
+    this.samples[1].push(e.inputBuffer.getChannelData(1).slice())
+  }
+
+  stop() {
+    this.processor.disconnect();
+    this.source.disconnect();
+    this.output = this.context.createBuffer(1, this.samples[0].length*this.bufferSize, this.context.sampleRate);
+    var that = this; //eslint-disable-line
+    const one = this.output.getChannelData(0);
+    this.samples[0].forEach((v, i, a, that) => { //eslint-disable-line
+      one.set(v, i*this.bufferSize)
+    })
+    const two = this.output.getChannelData(1);
+    this.samples[1].forEach((v, i, a, that) => { //eslint-disable-line
+      two.set(v, i*this.bufferSize)
+    })
+  }
+}
