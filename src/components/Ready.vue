@@ -14,8 +14,9 @@ export default {
     title: 'Amazing Grace',
     hide: true
   }),
-  props: ['readyPromise','soundServices'],
+  props: ['soundServices'],
   mounted: function() {
+    this.title = this.soundServices.track.title;
     this.$emit('bubble', 0);
     setTimeout(() => this.hide = false);
   },

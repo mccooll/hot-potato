@@ -9,6 +9,8 @@ import Sing from '../components/Sing'
 import Mixer from '../components/Mixer'
 import Upload from '../components/Upload'
 import SoundServices from '../SoundServicesTestRig'
+import FileSetup from '../components/FileSetup'
+import VerseSetup from '../components/VerseSetup'
 
 const soundServices = new SoundServices();
 
@@ -16,9 +18,22 @@ Vue.use(VueRouter)
 
 const routes = [
   {
-    path: '/1',
-    component: Welcome,
+    path: '/setup-file',
+    component: FileSetup,
     props: { soundServices }
+  },
+  {
+    path: '/setup-lyrics',
+    component: VerseSetup,
+    props: { soundServices }
+  },
+  {
+    path: '/1',
+    name: '1',
+    component: Welcome,
+    props: (route) => {
+      return { soundServices, ...route.params }
+    }
   },
   {
     path: '/2',
@@ -43,7 +58,8 @@ const routes = [
   },
   {
     path: '/5',
-    component: Ready
+    component: Ready,
+    props: { soundServices }
   },
   {
     path: '/6',

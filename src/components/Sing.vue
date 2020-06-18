@@ -22,6 +22,7 @@ Was blind but now I see",
   }),
   props: ['soundServices'],
   mounted: function() {
+    this.lyrics = this.soundServices.track.lyrics;
     setTimeout(this.countdown);
     this.$emit('bubble', 1);
     setTimeout(() => {
@@ -76,6 +77,7 @@ Was blind but now I see",
   margin: 0;
   white-space: pre;
   top: 0;
+  left: 0;
   background: linear-gradient(to right, rgba(255,255,255,0.5), transparent, transparent), linear-gradient(to bottom, rgba(255,255,255,0.5), transparent, rgba(255,255,255,0.5));
 }
 </style>

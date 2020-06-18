@@ -8,14 +8,15 @@
 <script>
 export default {
   data: () => ({
-    title: 'Amazing Grace',
+    title: '_',
     hide: true
   }),
-  props: ['soundServices'],
-  mounted: function() {
-
+  props: ['soundServices','id'],
+  mounted: async function() {
+    await this.soundServices.fetchMeta(this.id);
+    this.title = this.soundServices.track.title;
     if(!this.badBroswer()) {
-      let promise = this.soundServices.fetchBaseAudio();
+      let promise = this.soundServices.fetchBaseAudio(this.id);
       setTimeout(() => this.hide = false );
       setTimeout(() => {
         this.hide = true;

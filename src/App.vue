@@ -17,7 +17,13 @@ export default {
     speed: 0
   }),
   created: function() {
-    this.$router.push("/1");
+    var id = new URL(window.location).searchParams.get('id');
+    console.log(id)
+    if(!id) {
+      this.$router.push("/setup-file");
+    } else {
+      this.$router.push( {name:"1", params: {id: id} })
+    }
   },
   methods: {
     switchBubbles: function(speed) { this.speed = speed }
@@ -43,6 +49,7 @@ export default {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
+    align-items: center;
     min-height:100vh;
   }
   .bigBubble {

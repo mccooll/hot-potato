@@ -2,6 +2,12 @@ import Meyda from 'meyda'
 
 export default class SoundServices {
 
+  track = {
+    _id: null,
+    _rev: null,
+    title: null,
+    lyrics: null
+  }
   baseTrack = {
     volume: null,
     buffer: null
@@ -41,11 +47,26 @@ export default class SoundServices {
     return arrayBuffer;
   }
 
-  async fetchBaseAudio() {
-    const arrayBuffer = await this.fetchArrayBuffer('input');
+  async fetchBaseAudio(id) {
+    const arrayBuffer = await this.fetchArrayBuffer('hotpotato/' + id);
     this.baseTrack.buffer = this.getBufferFromRaw(arrayBuffer);
     this.baseTrack.volume = this.getVolume(this.baseTrack.buffer.getChannelData(0));
     console.log("track length" + this.baseTrack.buffer.duration)
+  }
+
+  async setBaseAudio(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    this.baseTrack.buffer = await this.getBufferFromEncoded(arrayBuffer);
+    this.baseTrack.volume = this.getVolume(this.baseTrack.buffer.getChannelData(0));
+  }
+
+  async fetchMeta(id) {
+    const response = await fetch('hotpotato-meta/' + id);
+    const meta = await response.json();
+    this.track.title = meta.title;
+    this.track.lyrics = meta.lyrics;
+    this.track._id = meta._id;
+    this.track._rev = meta._rev;
   }
 
   getVolume(pcmArray) {
@@ -242,13 +263,47 @@ export default class SoundServices {
     mediaRecorder.start();
   }
 
-  async saveMixed(audioBuffer) {
+  async saveMixed(audioBuffer) { //deprecated
     const mixRawData = audioBuffer.getChannelData(0);
     const mixDataBlob = new Blob([mixRawData]);
     return fetch('output', {method: 'post', body: mixDataBlob});
   }
 
-  
+  async saveBuffer(audioBuffer) {
+    if(!audioBuffer) {
+      audioBuffer = this.baseTrack.buffer;
+    }
+    if(!audioBuffer) {
+      return;
+    }
+    var method = 'post';
+    var url = 'hotpotato-track';
+    if(this.track._id) {
+      method = 'put';
+      url += '/' + this.track._id + '/' + this.track._rev;
+    }
+    const rawData = audioBuffer.getChannelData(0);
+    const dataBlob = new Blob([rawData]);
+    const response = await fetch(url, {
+      method: method,
+      body: dataBlob,
+      headers: { 'Content-Type': 'application/x-binary' }
+    });
+    const updated = await response.json();
+    this.track._id = updated.id;
+    this.track._rev = updated.rev;
+  }
+
+  async saveMeta() {
+    const response = await fetch('hotpotato-meta', {
+      method: 'put',
+      body: JSON.stringify(this.track),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const updated = await response.json();
+    this.track._id = updated.id;
+    this.track._rev = updated.rev;
+  }
 }
 
 export class LiveMixer {
