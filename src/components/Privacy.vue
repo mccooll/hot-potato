@@ -27,6 +27,7 @@ export default {
   methods: {
     yes: function() {
       this.hide = true;
+      this.soundServices.audioCtx.resume();
       setTimeout(() => {
         this.$router.push( {name:"3", params: {readyPromise: this.readyPromise} });
       }, 1000 );
