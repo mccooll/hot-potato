@@ -89,9 +89,4 @@ export default {
     text-align: center;
     background: linear-gradient(to right, rgba(255,255,255,0.5), transparent, transparent), linear-gradient(to bottom, rgba(255,255,255,0.5), transparent, rgba(255,255,255,0.5));
   }
-  .fileInput {
-    width: 50vw;
-    height: 20vh;
-    position: relative;
-  }
 </style>

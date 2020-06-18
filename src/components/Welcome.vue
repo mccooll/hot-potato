@@ -15,7 +15,7 @@ export default {
   mounted: async function() {
     await this.soundServices.fetchMeta(this.id);
     this.title = this.soundServices.track.title;
-    if(!this.badBroswer()) {
+    if(!this.badBrowser()) {
       let promise = this.soundServices.fetchBaseAudio(this.id);
       setTimeout(() => this.hide = false );
       setTimeout(() => {
@@ -25,7 +25,7 @@ export default {
     }
   },
   methods: {
-    badBroswer() {
+    badBrowser() {
       if(!window.Response) {
         window.alert("This browser is not supported. Try firefox.");
       }
