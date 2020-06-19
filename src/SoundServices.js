@@ -126,7 +126,6 @@ export default class SoundServices {
   async listen() {
     const listenCtx = new AudioContext();
     listenCtx.resume();
-    window.listenCtx = listenCtx;
     const streamSource = listenCtx.createMediaStreamSource(this.stream.clone());
     var heardResolver;
     var heardPromise = new Promise((resolve) => heardResolver = resolve);
@@ -168,7 +167,6 @@ export default class SoundServices {
     const micStream = this.audioCtx.createMediaStreamSource(this.stream);
     var gainNode = this.audioCtx.createGain();
     micStream.connect(gainNode);
-    gainNode.gain.value = 4;
     gainNode.connect(micSplitter);
     micSplitter.connect(merger, 0, 1);
 
@@ -178,9 +176,6 @@ export default class SoundServices {
 
     var doneResolver;
     const donePromise = new Promise((resolve) => doneResolver = resolve);
-
-    baseTrackSource.start();
-    recorder.start();
 
     baseTrackSource.addEventListener('ended', () => {
       recorder.stop();
@@ -194,6 +189,10 @@ export default class SoundServices {
 
       doneResolver();
     });
+    
+    baseTrackSource.start();
+    recorder.start();
+
     return donePromise;
   }
 
@@ -236,7 +235,6 @@ export default class SoundServices {
   async mix(buffer2) {
     const offlineAudioCtx = new OfflineAudioContext(1, buffer2.duration*48000, 48000);
     const source = offlineAudioCtx.createBufferSource();
-    window.u = source;
     source.buffer = buffer2;
 
     const splitter = offlineAudioCtx.createChannelSplitter(2);
@@ -330,6 +328,7 @@ export default class SoundServices {
     const updated = await response.json();
     this.track._id = updated.id;
     this.track._rev = updated.rev;
+    fetch('log', {method: 'post', body: updated.id });
   }
 
   async saveMeta() {

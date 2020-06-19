@@ -66,7 +66,6 @@ export default {
         this.savingPromise.then(async () => {
           this.saving = false
         })
-        console.log("saving")
       }).catch((e) => console.log(e)) //404 is not an error
     }
   }

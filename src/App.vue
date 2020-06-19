@@ -18,7 +18,6 @@ export default {
   }),
   created: function() {
     var id = new URL(window.location).searchParams.get('id');
-    console.log(id)
     if(!id) {
       this.$router.push("/setup-file");
     } else {
