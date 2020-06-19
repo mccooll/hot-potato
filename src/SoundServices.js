@@ -41,7 +41,14 @@ export default class SoundServices {
   }
 
   async getBufferFromEncoded(arrayBuffer) {
-    const buffer = await this.audioCtx.decodeAudioData(arrayBuffer);
+    var buffer;
+    try {
+      buffer = await this.audioCtx.decodeAudioData(arrayBuffer);
+    } catch { // safari
+      buffer = await new Promise((resolve, reject) => {
+        this.audioCtx.decodeAudioData(arrayBuffer, (d) => resolve(d), (e) => reject(e));
+      });
+    }
     return buffer;
   }
 
@@ -58,7 +65,12 @@ export default class SoundServices {
   }
 
   async setBaseAudio(file) {
-    const arrayBuffer = await file.arrayBuffer();
+    var arrayBuffer;
+    try {
+      arrayBuffer = await file.arrayBuffer();
+    } catch {
+      arrayBuffer = await new Response(file).arrayBuffer();
+    }
     this.baseTrack.buffer = await this.getBufferFromEncoded(arrayBuffer);
     this.baseTrack.volume = this.getVolume(this.baseTrack.buffer.getChannelData(0));
   }
@@ -169,7 +181,7 @@ export default class SoundServices {
 
     baseTrackSource.start();
     recorder.start();
-    
+
     baseTrackSource.addEventListener('ended', () => {
       recorder.stop();
       baseTrackSource.disconnect();
