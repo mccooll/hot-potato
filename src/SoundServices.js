@@ -55,7 +55,6 @@ export default class SoundServices {
     const arrayBuffer = await this.fetchArrayBuffer('hotpotato/' + id);
     this.baseTrack.buffer = this.getBufferFromRaw(arrayBuffer);
     this.baseTrack.volume = this.getVolume(this.baseTrack.buffer.getChannelData(0));
-    console.log("track length" + this.baseTrack.buffer.duration)
   }
 
   async setBaseAudio(file) {
@@ -113,12 +112,15 @@ export default class SoundServices {
   }
 
   async listen() {
-    const streamSource = this.audioCtx.createMediaStreamSource(this.stream);
+    const listenCtx = new AudioContext();
+    listenCtx.resume();
+    window.listenCtx = listenCtx;
+    const streamSource = listenCtx.createMediaStreamSource(this.stream.clone());
     var heardResolver;
     var heardPromise = new Promise((resolve) => heardResolver = resolve);
     var rmss = [];
     const analyzer = Meyda.createMeydaAnalyzer({
-      "audioContext": this.audioCtx,
+      "audioContext": listenCtx,
       "source": streamSource,
       "bufferSize": 16384,
       "featureExtractors": ["spectralFlatness", "buffer", "rms"],
@@ -136,6 +138,8 @@ export default class SoundServices {
     this.quietRMS = Math.sqrt(rmss.reduce((s,v)=> s + v*v)/rmss.length);
     analyzer.stop();
     streamSource.disconnect();
+    streamSource.mediaStream.getAudioTracks()[0].stop();
+    listenCtx.close();
   }
 
   async record() {
@@ -158,38 +162,26 @@ export default class SoundServices {
 
     merger.connect(mixedStream);
 
-    const mediaRecorder = new MediaRecorder(mixedStream.stream, { mimeType: 'audio/webm' });
+    const recorder = new SafariAudioBufferRecorder(this.audioCtx, mixedStream.stream);
 
-    baseTrackSource.start();
-    mediaRecorder.start();
-
-    baseTrackSource.addEventListener('ended', () => {
-      mediaRecorder.stop();
-      console.log('track ended and recording stopped' + this.audioCtx.currentTime);
-      baseTrackSource.disconnect();
-    });
-
-    let recordedChunks = [];
-
-    mediaRecorder.addEventListener('dataavailable', async function(e) { //assuming this event only happens after recording 
-      recordedChunks = [];
-      if (e.data.size > 0) {
-        recordedChunks.push(e.data);
-        console.log('doone yo')
-        window.chunkss = recordedChunks;
-      }
-    });
     var doneResolver;
     const donePromise = new Promise((resolve) => doneResolver = resolve);
-    mediaRecorder.addEventListener('stop', async () => {
-      const buffer = await this.getRecordedBuffer(recordedChunks);
+
+    baseTrackSource.start();
+    recorder.start();
+    
+    baseTrackSource.addEventListener('ended', () => {
+      recorder.stop();
+      baseTrackSource.disconnect();
+
+      const buffer = recorder.output;
       this.micTrack.volume = this.getVolume(buffer.getChannelData(1));
       let gain = this.baseTrack.volume/this.micTrack.volume;
       if(this.micTrack.volume < this.quietRMS*2) gain = 1;
-      console.log(gain);
       this.liveMixer = new LiveMixer(buffer, gain, this.stream.getAudioTracks()[0].getSettings().latency || 0);
+
       doneResolver();
-    })
+    });
     return donePromise;
   }
 
@@ -253,7 +245,13 @@ export default class SoundServices {
     merger.connect(offlineAudioCtx.destination);
     source.start(0)
 
-    const render = await offlineAudioCtx.startRendering();
+    var render = await offlineAudioCtx.startRendering();
+    if(!render) {
+      render = await new Promise((resolve) => {
+        offlineAudioCtx.startRendering();
+        offlineAudioCtx.oncomplete = (e) => resolve(e.renderedBuffer);
+      });
+    }
     return render;
   }
 
@@ -261,7 +259,7 @@ export default class SoundServices {
     var mix = this.audioCtx.createBufferSource();
     mix.buffer = audioBuffer;
     mix.connect(this.audioCtx.destination);
-    this.setupMixedDownload(mix);
+    //this.setupMixedDownload(mix);
     mix.start();
   }
 
@@ -405,7 +403,7 @@ class SafariAudioBufferRecorder {
     this.samples[1] = []
     this.source = context.createMediaStreamSource(stream);
     this.context = context;
-    this.processor = this.context.createScriptProcessor(this.bufferSize, 1, 1);
+    this.processor = this.context.createScriptProcessor(this.bufferSize, 2, 2);
     this.processor.onaudioprocess = this.process.bind(this);
   }
 
@@ -422,7 +420,7 @@ class SafariAudioBufferRecorder {
   stop() {
     this.processor.disconnect();
     this.source.disconnect();
-    this.output = this.context.createBuffer(1, this.samples[0].length*this.bufferSize, this.context.sampleRate);
+    this.output = this.context.createBuffer(2, this.samples[0].length*this.bufferSize, this.context.sampleRate);
     var that = this; //eslint-disable-line
     const one = this.output.getChannelData(0);
     this.samples[0].forEach((v, i, a, that) => { //eslint-disable-line

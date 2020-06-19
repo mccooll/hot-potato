@@ -34,10 +34,10 @@ export default {
         window.alert("This browser is not supported. Try firefox.");
         return true;
       }
-      if(!window.MediaRecorder) { //iOS safari/chrome
-        window.alert("Iphone is not supported. This browser is not supported. Try firefox on desktop.");
-        return true;
-      }
+      // if(!window.MediaRecorder) { //iOS safari/chrome
+      //   window.alert("Iphone is not supported. This browser is not supported. Try firefox on desktop.");
+      //   return true;
+      // }
       return false;
     }
   }
