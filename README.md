@@ -13,6 +13,11 @@ npm run serve
 npm run build
 ```
 
+### Runs in production
+```
+node server.js
+```
+
 ### Lints and fixes files
 ```
 npm run lint
