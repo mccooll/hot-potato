@@ -138,4 +138,7 @@ export default {
     color: darkslategrey;
     text-transform: uppercase;
   }
+  button:disabled {
+    color: #2f4f4f50; /* faded darkslategrey */
+  }
 </style>

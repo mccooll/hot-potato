@@ -7,7 +7,7 @@
       <h3>Lyrics</h3><textarea class="lyricsEditor" v-model="lyrics" v-on:input="setText"></textarea>
     </div>
     <div>
-      <button @click="done"><h3>All set! Let's go!</h3></button>
+      <button @click="done" v-bind:disabled="saving"><h3>All set! Let's go!</h3></button>
       <h3 style="display: inline-block">
         <span v-if="saving">Saving</span>
         <span v-else>Saved</span>
