@@ -50,6 +50,7 @@ export default {
     justify-content: space-around;
     align-items: center;
     min-height:100vh;
+    min-height: -webkit-fill-available;
   }
   .bigBubble {
     background-color: lightpink;
