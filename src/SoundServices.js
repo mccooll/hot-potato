@@ -145,7 +145,7 @@ export default class SoundServices {
         if( rmss.length > 4 ) {
           const baseline = (( rmss[2] + rmss[3] ) / 2) / (( sfs[2] + sfs[3] ) / 2);
           const current = features.rms / features.spectralFlatness;
-          if( baseline*5 < current ) {
+          if( baseline*3 < current ) {
             fetch('log', {method: 'post', body: "heard SF "+features.spectralFlatness });
             heardResolver();
           }

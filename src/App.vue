@@ -24,6 +24,9 @@ export default {
       this.$router.push( {name:"1", params: {id: id} })
     }
   },
+  mounted: function() {
+    document.body.scroll(0,0); // iOS Safari 12
+  },
   methods: {
     switchBubbles: function(speed) { this.speed = speed }
   }
@@ -50,6 +53,8 @@ export default {
     justify-content: space-around;
     align-items: center;
     min-height:100vh;
+  }
+  _::-webkit-full-page-media, _:future, :root .content { /* safari hack: https://stackoverflow.com/questions/16348489/is-there-a-css-hack-for-safari-only-not-chrome */
     min-height: -webkit-fill-available;
   }
   .bigBubble {
