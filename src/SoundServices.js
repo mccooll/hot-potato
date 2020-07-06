@@ -138,13 +138,13 @@ export default class SoundServices {
       "bufferSize": 16384,
       "featureExtractors": ["spectralFlatness", "rms"],
       "callback": features => {
-        rmss.push(features.rms);
-        sfs.push(features.spectralFlatness);
-        if( rmss.length > 5 ) {
-          const baseline = (( rmss[3] + rmss[4] ) / 2) / (( sfs[3] + sfs[4] ) / 2);
-          console.log(baseline)
+        if(features.rms != 0) {
+          rmss.push(features.rms);
+          sfs.push(features.spectralFlatness);
+        }
+        if( rmss.length > 4 ) {
+          const baseline = (( rmss[2] + rmss[3] ) / 2) / (( sfs[2] + sfs[3] ) / 2);
           const current = features.rms / features.spectralFlatness;
-          console.log(current)
           if( baseline*5 < current ) {
             fetch('log', {method: 'post', body: "heard SF "+features.spectralFlatness });
             heardResolver();
