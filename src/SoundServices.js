@@ -130,16 +130,25 @@ export default class SoundServices {
     var heardResolver;
     var heardPromise = new Promise((resolve) => heardResolver = resolve);
     var rmss = [];
+    var sfs = [];
     const analyzer = Meyda.createMeydaAnalyzer({
       "audioContext": listenCtx,
       "source": streamSource,
+      "channel": 0,
       "bufferSize": 16384,
-      "featureExtractors": ["spectralFlatness", "buffer", "rms"],
+      "featureExtractors": ["spectralFlatness", "rms"],
       "callback": features => {
         rmss.push(features.rms);
-        if( rmss.length > 2 && ( features.spectralFlatness < 0.2 || (features.rms/3 > (rmss[0]+rmss[1])) ) ) {
-          fetch('log', {method: 'post', body: "heard SF "+features.spectralFlatness });
-          heardResolver();
+        sfs.push(features.spectralFlatness);
+        if( rmss.length > 5 ) {
+          const baseline = (( rmss[3] + rmss[4] ) / 2) / (( sfs[3] + sfs[4] ) / 2);
+          console.log(baseline)
+          const current = features.rms / features.spectralFlatness;
+          console.log(current)
+          if( baseline*5 < current ) {
+            fetch('log', {method: 'post', body: "heard SF "+features.spectralFlatness });
+            heardResolver();
+          }
         } 
       }
     });
