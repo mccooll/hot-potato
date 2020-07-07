@@ -57,6 +57,7 @@ export default {
     align-items: center;
     min-height:100vh;
     min-height: -webkit-fill-available;
+    min-width: 100vw;
   }
   .bigBubble {
     background-color: lightpink;
