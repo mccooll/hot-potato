@@ -48,11 +48,12 @@ export default {
     font-family: Georgia, Baskerville;
   }
   .content {
+    position: fixed;
+    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
-    min-height:100vh;
   }
   .bigBubble {
     background-color: lightpink;
