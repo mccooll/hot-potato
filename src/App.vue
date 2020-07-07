@@ -44,6 +44,9 @@ export default {
     touch-action: none;
     font-family: Roboto, Tahoma, Helvetica;
   }
+  #app {
+    position: fixed;
+  }
   .title {
     font-family: Georgia, Baskerville;
   }
@@ -53,8 +56,6 @@ export default {
     justify-content: space-around;
     align-items: center;
     min-height:100vh;
-  }
-  _::-webkit-full-page-media, _:future, :root .content { /* safari hack: https://stackoverflow.com/questions/16348489/is-there-a-css-hack-for-safari-only-not-chrome */
     min-height: -webkit-fill-available;
   }
   .bigBubble {
